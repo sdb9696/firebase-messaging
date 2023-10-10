@@ -1,0 +1,29 @@
+repos:
+-   repo: https://github.com/python-poetry/poetry
+    rev: 1.6.0
+    hooks:
+    -   id: poetry-check
+
+- repo: https://github.com/python/black
+  rev: 23.3.0
+  hooks:
+  - id: black
+    files: push_receiver
+    
+- repo: https://github.com/pycqa/flake8
+  rev: 6.0.0
+  hooks:
+  - id: flake8
+    #files: push_receiver
+
+- repo: local
+  hooks:
+  - id: pylint
+    name: pylint
+    entry: pylint
+    language: system
+    types: [python]
+    require_serial: true
+    files: push_receiver
+
+
