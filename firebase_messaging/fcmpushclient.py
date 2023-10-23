@@ -695,15 +695,17 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         self.sender_id = sender_id
         self.app_id = app_id
         if self.credentials:
-            gcm_check_in(
-                sender_id,
+            gcm_response = gcm_check_in(
+                self.credentials["gcm"]["androidId"],
                 self.credentials["gcm"]["securityToken"],
                 log_debug_verbose=self.config.log_debug_verbose,
             )
-        else:
-            self.credentials = self.register(sender_id, app_id)
-            if self.credentials_updated_callback:
-                self.credentials_updated_callback(self.credentials)
+            if gcm_response:
+                return self.credentials["fcm"]["token"]
+
+        self.credentials = self.register(sender_id, app_id)
+        if self.credentials_updated_callback:
+            self.credentials_updated_callback(self.credentials)
 
         return self.credentials["fcm"]["token"]
 

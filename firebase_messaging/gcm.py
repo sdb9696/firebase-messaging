@@ -60,6 +60,10 @@ def gcm_check_in(
         timeout=2,
     )
     acir = AndroidCheckinResponse()
+    if resp.status_code != 200:
+        _logger.error("GCM check failed: %s", resp.text)
+        return None
+
     acir.ParseFromString(resp.content)
 
     if log_debug_verbose:

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "firebase-messaging"
-version = "0.1.0"
+version = "0.1.1"
 description = "FCM/GCM push notification client"
 authors = ["sdb9696 <steven.beth@gmail.com>"]
 license = "MIT"
@@ -17,6 +17,7 @@ classifiers = [
     "Environment :: Other Environment",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Libraries :: Python Modules"
 ]
 packages = [
