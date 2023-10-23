@@ -1,2 +1,8 @@
 __pycache__/
 .vscode/
+
+.coverage
+.tox
+htmlcov/
+docs/build
+dist

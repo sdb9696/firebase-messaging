@@ -1,8 +1,9 @@
 [flake8]
-exclude = .venv,.git,.tox,docs,venv,bin,lib,deps,build,push_receiver/proto/*,push_receiver/decrypt.py,tests/*
+exclude = .venv,.git,.tox,docs,venv,bin,lib,deps,build,firebase_messaging/proto/*,firebase_messaging/decrypt.py,tests/*
 doctests = True
 # To work with Black
 max-line-length = 88
+extend-ignore = E203
 per-file-ignores =
     # imported but unused & redefinition of unused
     tests/*: F811, F401

@@ -1,0 +1,23 @@
+{
+    "id": "chrome-63.0.3234.0",
+    "domain": "mcs.android.com",
+    "user": "0123456789876543210",
+    "resource": "9876543210987654321",
+    "authToken": "123456789123456789",
+    "deviceId": "android-490ca293031302b0",
+    "setting": [
+        {
+            "name": "new_vc",
+            "value": "1"
+        }
+    ],
+    "adaptiveHeartbeat": false,
+    "heartbeatStat": {
+        "ip": "",
+        "timeout": true,
+        "intervalMs": 30000
+    },
+    "useRmq2": true,
+    "authService": "ANDROID_ID",
+    "networkType": 1
+}

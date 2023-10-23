@@ -1,0 +1,28 @@
+{
+    "id": "ABCDEF12",
+    "from": "ZYXW01-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnop-1_zyxwvutsrqZYXWVUTSRQ12345",
+    "category": "org.chromium.linux",
+    "appData": [
+    {
+        "key": "google.source",
+        "value": "webpush"
+    },
+    {
+        "key": "encryption",
+        "value": "salt=zZYXWVUTSRQ12yxwvutsrq=="
+    },
+    {
+        "key": "subtype",
+        "value": "abcdef01-ef12-1234-12ef-abcdef012345"
+    },
+    {
+        "key": "crypto-key",
+        "value": "dh=BAGEFtID7WlmwzQ9pbjdRYAhfPe7Z8lA3ZGIPUh0SE3ikoY2PIrWUP0rmhpE4Kl8ImgMUDjKWrz0WmtLxORIHuw="
+    }
+    ],
+    "persistentId": "0:0123456789123456%0123456789abcdef",
+    "lastStreamIdReceived": 6,
+    "ttl": 240,
+    "sent": "1697189311810",
+    "rawData": "3vJvXzzGf1gF9D7eB6/ioZT+lWWstyY9B/Yjebjm7mU3YTg="
+}

@@ -8,13 +8,13 @@ repos:
   rev: 23.3.0
   hooks:
   - id: black
-    files: push_receiver
+    files: firebase_messaging
     
 - repo: https://github.com/pycqa/flake8
   rev: 6.0.0
   hooks:
   - id: flake8
-    #files: push_receiver
+    #files: firebase_messaging
 
 - repo: local
   hooks:
@@ -24,6 +24,6 @@ repos:
     language: system
     types: [python]
     require_serial: true
-    files: push_receiver
+    files: firebase_messaging
 
 
