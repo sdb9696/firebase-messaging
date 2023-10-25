@@ -136,8 +136,8 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         self.app_id = None
         self.sender_id = None
 
-        self.reset_lock = asyncio.Lock()
-        self.stopping_lock = asyncio.Lock()
+        self.reset_lock = None
+        self.stopping_lock = None
 
     def _msg_str(self, msg):
         if self.config.log_debug_verbose:
