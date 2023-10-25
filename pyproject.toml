@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "firebase-messaging"
-version = "0.1.2"
+version = "0.1.3"
 description = "FCM/GCM push notification client"
 authors = ["sdb9696 <steven.beth@gmail.com>"]
 license = "MIT"
