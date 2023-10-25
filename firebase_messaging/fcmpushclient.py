@@ -125,9 +125,6 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         self.last_login_time = None
         self.last_message_time = None
 
-        self.reset_lock = asyncio.Lock()
-        self.stopping_lock = asyncio.Lock()
-
         self.is_resetting = False
         self.is_stopping = False
         self.tasks = None
@@ -138,6 +135,9 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
 
         self.app_id = None
         self.sender_id = None
+
+        self.reset_lock = asyncio.Lock()
+        self.stopping_lock = asyncio.Lock()
 
     def _msg_str(self, msg):
         if self.config.log_debug_verbose:
@@ -375,9 +375,14 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         decrypted = self._decrypt_raw_data(
             self.credentials, crypto_key, salt, p.raw_data
         )
-        decrypted_json = json.loads(decrypted.decode("utf-8"))
+        try:
+            decrypted_json = json.loads(decrypted.decode("utf-8"))
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+        ret_val = decrypted_json if decrypted_json else decrypted
         self._log_verbose(
-            "Decrypted data for message %s is: %s", p.persistent_id, decrypted_json
+            "Decrypted data for message %s is: %s", p.persistent_id, ret_val
         )
         if self.main_loop and self.main_loop.is_running():
             if callback:
@@ -388,7 +393,7 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
                         self.loop,
                         on_error,
                         callback,
-                        decrypted_json,
+                        ret_val,
                         p,
                         obj,
                     )
@@ -723,7 +728,17 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
             obj: returns the arbitrary object if supplied to this function.
         :param obj: Arbitrary object to be returned in the callback.
         """
-        self.main_loop = asyncio.get_running_loop()
+        try:
+            self.main_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            _logger.error(
+                "No running event loop, connect failed. "
+                + "FcMPushClient needs a running event loop to call back on"
+            )
+            return
+
+        self.reset_lock = asyncio.Lock()
+        self.stopping_lock = asyncio.Lock()
 
         self.fcm_thread = Thread(
             target=self._start_connection, args=[callback, obj], daemon=True

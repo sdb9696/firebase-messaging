@@ -38,7 +38,7 @@ async def test_login(logged_in_push_client, fake_mcs_endpoint, mocker, caplog):
     assert len([record for record in caplog.records if record.levelname == "ERROR"]) == 0
     assert "Succesfully logged in to MCS endpoint" in [record.message for record in caplog.records if record.levelname == "INFO"]    
 
-
+#@pytest.mark.parametrize("raw_data", [1,2,3,6])
 async def test_data_message_receive(logged_in_push_client, fake_mcs_endpoint, mocker, caplog):
 
     notification = None
@@ -138,6 +138,17 @@ async def test_heartbeat_send(logged_in_push_client, fake_mcs_endpoint, mocker, 
     
     assert len([record.message for record in caplog.records if record.levelname == "DEBUG" and "Received heartbeat ack" in record.message] ) == 1
 
+def test_no_loop(caplog):
+
+    pr = FcmPushClient()
+    pr.connect(None)
+    
+    msg = (
+        "No running event loop, connect failed. " +
+        "FcMPushClient needs a running event loop to call back on"
+    )
+    assert len([record.message for record in caplog.records if record.levelname == "ERROR" and msg == record.message] ) == 1
+
 async def test_decrypt():
     def get_app_data_by_key(msg, key):
         for x in msg.app_data:
@@ -155,17 +166,15 @@ async def test_decrypt():
     salt_str = get_app_data_by_key(dms, "encryption")[5:]
     salt = urlsafe_b64decode(salt_str.encode("ascii"))
 
-    #crypto_key = get_app_data_by_key(dms, "crypto-key")[3:]
     
     # Random key pair
     sender_pub = 'BAGEFtID7WlmwzQ9pbjdRYAhfPe7Z8lA3ZGIPUh0SE3ikoY2PIrWUP0rmhpE4Kl8ImgMUDjKWrz0WmtLxORIHuw'
-    #sender_pub_dh = urlsafe_b64decode(sender_pub.encode("ascii") )
     
     sender_pri_der = urlsafe_b64decode('MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgwSUpDfIqdJG3XVkn7t1GExHuW3gsqD4-J525w-rnCIihRANCAAQBhBbSA-1pZsM0PaW43UWAIXz3u2fJQN2RiD1IdEhN4pKGNjyK1lD9K5oaROCpfCJoDFA4ylq89FprS8TkSB7s'.encode("ascii") + b"========")
     sender_privkey = load_der_private_key(
             sender_pri_der, password=None, backend=default_backend()
         )
-    # secret = 'NENKX5zJRTFx5bGWBM7C_A'
+
     sender_sec = urlsafe_b64decode(credentials["keys"]["secret"].encode("ascii") + b"========") 
     receiver_pub_key = urlsafe_b64decode(credentials["keys"]["public"].encode("ascii") + b"=")
     raw_data_encrypted = encrypt(
