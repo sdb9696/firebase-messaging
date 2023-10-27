@@ -38,23 +38,27 @@ async def test_login(logged_in_push_client, fake_mcs_endpoint, mocker, caplog):
     assert len([record for record in caplog.records if record.levelname == "ERROR"]) == 0
     assert "Succesfully logged in to MCS endpoint" in [record.message for record in caplog.records if record.levelname == "INFO"]    
 
-#@pytest.mark.parametrize("raw_data", [1,2,3,6])
-async def test_data_message_receive(logged_in_push_client, fake_mcs_endpoint, mocker, caplog):
+@pytest.mark.parametrize("callback_loop", [None, "loop"], ids=["no_cb_loop_param", "cb_loop_param"])
+async def test_data_message_receive(logged_in_push_client, fake_mcs_endpoint, mocker, caplog, callback_loop):
 
     notification = None
     persistent_id = None
     callback_obj = None
+    cb_loop = None
     def on_msg(ntf, psid, obj=None):
         nonlocal notification
         nonlocal persistent_id
         nonlocal callback_obj
+        nonlocal cb_loop
         notification = ntf
         persistent_id = psid
         callback_obj = obj
+        cb_loop = asyncio.get_running_loop()
 
     credentials = load_fixture_as_dict("credentials.json")
     obj = "Foobar"
-    pr = await logged_in_push_client(credentials, on_msg, obj)
+    cb_loop_param = asyncio.get_running_loop() if callback_loop else None
+    pr = await logged_in_push_client(credentials, on_msg, obj, cb_loop_param)
 
     dms = load_fixture_as_msg("data_message_stanza.json", DataMessageStanza)
     await fake_mcs_endpoint.put_message(dms)
@@ -66,6 +70,11 @@ async def test_data_message_receive(logged_in_push_client, fake_mcs_endpoint, mo
     assert notification == {'foo': 'bar'}
     assert persistent_id == dms.persistent_id
     assert obj == callback_obj
+
+    if callback_loop:
+        assert cb_loop == asyncio.get_running_loop()
+    else:
+        assert cb_loop == pr.listen_event_loop
     
 
 async def test_connection_reset(logged_in_push_client, fake_mcs_endpoint, mocker):
@@ -98,7 +107,7 @@ async def test_terminate(logged_in_push_client, fake_mcs_endpoint, mocker, error
     for i in range(1,error_count + 1):
         await fake_mcs_endpoint.put_error(ConnectionResetError())
 
-        await asyncio.sleep(0.3)
+        await asyncio.sleep(0.1)
         # client should reset while it gets errors < abort_on_sequential_error_count then it should terminate
         if i < error_count:
             assert pr._reset.call_count == i
@@ -116,7 +125,7 @@ async def test_heartbeat_receive(logged_in_push_client, fake_mcs_endpoint, caplo
 
     ping = load_fixture_as_msg("heartbeat_ping.json", HeartbeatPing)
     await fake_mcs_endpoint.put_message(ping)
-    await asyncio.sleep(0.1)
+
     msg = await fake_mcs_endpoint.get_message()
     assert isinstance(msg, HeartbeatAck)
     
@@ -129,25 +138,15 @@ async def test_heartbeat_send(logged_in_push_client, fake_mcs_endpoint, mocker, 
     ping = load_fixture_as_msg("heartbeat_ping.json", HeartbeatPing)
     ack = load_fixture_as_msg("heartbeat_ack.json", HeartbeatAck)
     await pr._send_heartbeat()
-    await asyncio.sleep(0.1)
+
     ping_msg = await fake_mcs_endpoint.get_message()
-    await asyncio.sleep(0.1)
+
     await fake_mcs_endpoint.put_message(ack)
     await asyncio.sleep(0.1)
     assert isinstance(ping_msg, HeartbeatPing)
     
     assert len([record.message for record in caplog.records if record.levelname == "DEBUG" and "Received heartbeat ack" in record.message] ) == 1
 
-def test_no_loop(caplog):
-
-    pr = FcmPushClient()
-    pr.connect(None)
-    
-    msg = (
-        "No running event loop, connect failed. " +
-        "FcMPushClient needs a running event loop to call back on"
-    )
-    assert len([record.message for record in caplog.records if record.levelname == "ERROR" and msg == record.message] ) == 1
 
 async def test_decrypt():
     def get_app_data_by_key(msg, key):

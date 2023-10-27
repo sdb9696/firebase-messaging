@@ -12,14 +12,15 @@ from async_timeout import timeout as asyncio_timeout
 class FakeMcsEndpoint():
 
     def __init__(self):
-        self.read_queue = asyncio.Queue()
         
         self.connection_mock = patch("asyncio.open_connection", side_effect = self.open_connection, autospec=True)
         self.connection_mock.start()
 
         self.client_loop = None
+        self.init_loop = None
         self.client_writer = None
         self.client_reader = None
+        self.init_loop = asyncio.get_running_loop()
 
     def close(self):
         self.connection_mock.stop()
@@ -39,18 +40,27 @@ class FakeMcsEndpoint():
 
     async def put_message(self, message):
         await self.wait_for_connection()
-        asyncio.run_coroutine_threadsafe(self.client_reader.put_message(message), self.client_loop)
+        if self.init_loop != self.client_loop:
+            asyncio.run_coroutine_threadsafe(self.client_reader.put_message(message), self.client_loop)
+        else:
+            await self.client_reader.put_message(message)
         
 
     async def put_error(self, error):
         await self.wait_for_connection()
-        asyncio.run_coroutine_threadsafe(self.client_reader.put_error(error), self.client_loop)
+        if self.init_loop != self.client_loop:
+            asyncio.run_coroutine_threadsafe(self.client_reader.put_error(error), self.client_loop)
+        else:
+            await self.client_reader.put_error(error)
         
 
     async def get_message(self):
         await self.wait_for_connection()
-        fut = asyncio.run_coroutine_threadsafe(self.client_writer.get_message(), self.client_loop)
-        return fut.result()
+        if self.init_loop != self.client_loop:
+            fut = asyncio.run_coroutine_threadsafe(self.client_writer.get_message(), self.client_loop)
+            return fut.result()
+        else:
+            return await self.client_writer.get_message()
 
     class FakeReader:
         def __init__(self):

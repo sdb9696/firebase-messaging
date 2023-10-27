@@ -1,8 +1,7 @@
 """Test configuration for the Ring platform."""
 import pytest
 import requests_mock
-import struct
-import traceback
+import threading
 import os
 import select
 from unittest.mock import MagicMock, DEFAULT, Mock, patch
@@ -45,23 +44,33 @@ async def fake_mcs_endpoint():
     ep.close()
     
 
-@pytest.fixture()
-async def logged_in_push_client(fake_mcs_endpoint, mocker, caplog):
+@pytest.fixture(params=[None, "loop"], ids=["loop_created", "loop_provided"])
+async def logged_in_push_client(request, fake_mcs_endpoint, mocker, caplog):
 
     clients = {}
     caplog.set_level(logging.DEBUG)
 
-    async def _logged_in_push_client(credentials, msg_callback, callback_obj = None, *, supress_disconnect=False, **config_kwargs):
+    listen_loop = asyncio.get_running_loop() if request.param else None
+    async def _logged_in_push_client(credentials, msg_callback, callback_obj = None, callback_loop=None, *, supress_disconnect=False, **config_kwargs):
 
         config = FcmPushClientConfig(**config_kwargs)
         pr = FcmPushClient(credentials=credentials, config=config)
         pr.checkin(1234, 4321)
-        pr.connect(msg_callback, callback_obj)
-        
+
+        cb_loop = asyncio.get_running_loop() if callback_loop else None
+        pr.connect(msg_callback, callback_obj, listen_event_loop=listen_loop, callback_event_loop=cb_loop)
+
         msg = await fake_mcs_endpoint.get_message()
         lr = load_fixture_as_msg("login_response.json", LoginResponse)
         await fake_mcs_endpoint.put_message(lr)
         clients[pr] = supress_disconnect
+
+        tc = 1 if listen_loop else 2
+        assert len(threading.enumerate()) == tc
+        if listen_loop:
+            assert pr.listen_event_loop == asyncio.get_running_loop()
+        else:
+            assert pr.listen_event_loop != asyncio.get_running_loop()
         return pr
 
     yield _logged_in_push_client
