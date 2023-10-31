@@ -65,7 +65,7 @@ python::
 
     # Notify the service you're connecting to of your FCM token
 
-    pc.connect(YOUR_NOTIFICATION_CALLBACK)
+    pc.start(YOUR_NOTIFICATION_CALLBACK)
 
 
 Attribution

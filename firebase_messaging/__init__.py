@@ -1,3 +1,3 @@
-from .fcmpushclient import FcmPushClientConfig, FcmPushClient
+from .fcmpushclient import FcmPushClientConfig, FcmPushClient, FcmPushClientRunState
 
-__all__ = ["FcmPushClientConfig", "FcmPushClient"]
+__all__ = ["FcmPushClientConfig", "FcmPushClient", "FcmPushClientRunState"]

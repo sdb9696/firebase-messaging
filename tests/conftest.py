@@ -58,7 +58,7 @@ async def logged_in_push_client(request, fake_mcs_endpoint, mocker, caplog):
         pr.checkin(1234, 4321)
 
         cb_loop = asyncio.get_running_loop() if callback_loop else None
-        pr.connect(msg_callback, callback_obj, listen_event_loop=listen_loop, callback_event_loop=cb_loop)
+        pr.start(msg_callback, callback_obj, listen_event_loop=listen_loop, callback_event_loop=cb_loop)
 
         msg = await fake_mcs_endpoint.get_message()
         lr = load_fixture_as_msg("login_response.json", LoginResponse)
@@ -77,7 +77,7 @@ async def logged_in_push_client(request, fake_mcs_endpoint, mocker, caplog):
     
     for k, v in clients.items():
         if not v:
-            k.disconnect()
+            k.stop()
 
 # setting the fixture name to requests_mock allows other
 # tests to pull in request_mock and append uris
