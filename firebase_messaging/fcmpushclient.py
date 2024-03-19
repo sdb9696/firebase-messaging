@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from enum import Enum
 from ssl import SSLError
 from threading import Thread
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_der_private_key
@@ -118,7 +118,7 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         self,
         *,
         credentials: Optional[dict] = None,
-        credentials_updated_callback: Optional[Callable[[str], None]] = None,
+        credentials_updated_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
         received_persistent_ids: Optional[List[str]] = None,
         config: Optional[FcmPushClientConfig] = None,
     ):
@@ -133,8 +133,8 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         self.reader = None
         self.writer = None
         self.do_listen = False
-        self.sequential_error_counters = {}
-        self.log_warn_counters = {}
+        self.sequential_error_counters: Dict[ErrorType, int] = {}
+        self.log_warn_counters: Dict[str, int] = {}
 
         # reset variables
         self.input_stream_id = 0
@@ -146,12 +146,12 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         self.run_state: FcmPushClientRunState = FcmPushClientRunState.CREATED
         self.tasks = None
 
-        self.listen_event_loop = None
-        self.callback_event_loop = None
-        self.fcm_thread = None
+        self.listen_event_loop: Optional[asyncio.AbstractEventLoop] = None
+        self.callback_event_loop: Optional[asyncio.AbstractEventLoop] = None
+        self.fcm_thread: Optional[Thread] = None
 
-        self.app_id = None
-        self.sender_id = None
+        self.app_id: Optional[str] = None
+        self.sender_id: Optional[int] = None
 
         self.reset_lock = None
         self.stopping_lock = None
@@ -789,9 +789,9 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         callback: Optional[Callable[[dict, str, Optional[Any]], None]],
         obj: Any = None,
         *,
-        listen_event_loop: asyncio.AbstractEventLoop = None,
-        callback_event_loop: asyncio.AbstractEventLoop = None,
-    ):
+        listen_event_loop: Optional[asyncio.AbstractEventLoop] = None,
+        callback_event_loop: Optional[asyncio.AbstractEventLoop] = None,
+    ) -> None:
         """Connect to FCM and start listening for push
             messages on a seperate service thread.
 
@@ -857,10 +857,10 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
                 self.fcm_thread = None
                 self.listen_event_loop = None
 
-    def is_started(self):
+    def is_started(self) -> bool:
         return self.run_state == FcmPushClientRunState.STARTED
 
-    def stop(self):
+    def stop(self) -> None:
         """Disconnects from FCM and shuts down the service thread."""
         if self.fcm_thread:
             if (
@@ -914,14 +914,15 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         dms.data = raw_data
         # Not supported yet
 
-    def send_message(self, raw_data, persistent_id):
+    def send_message(self, raw_data, persistent_id) -> None:
         """Not implemented, does nothing atm."""
         if self.fcm_thread:
             asyncio.run_coroutine_threadsafe(
-                self._send_data_message(raw_data, persistent_id), self.listen_event_loop
+                self._send_data_message(raw_data, persistent_id),
+                self.listen_event_loop,  # type: ignore[arg-type]
             )
         else:
-            self.listen_event_loop.create_task(
+            self.listen_event_loop.create_task(  # type: ignore[union-attr]
                 self._send_data_message(raw_data, persistent_id)
             )
 

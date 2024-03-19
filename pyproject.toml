@@ -43,18 +43,15 @@ sphinx-autodoc-typehints = {version = "^1.24.0", optional = true}
 docs = ["sphinx", "sphinx-rtd-theme", "sphinx-autodoc-typehints"]
 
 [tool.poetry.group.dev.dependencies]
-flake8 = "*"
 pre-commit = "*"
 tox = "*"
-black = "*"
-pylint = "*"
-isort = "*"
 pytest = "*"
 pytest-mock = "*"
 requests-mock = "*"
 pytest-asyncio = "*"
 pytest-cov = "*"
 async-timeout = ">=3.0.0"
+mypy-protobuf = "^3.5.0"
 
 [tool.pytest.ini_options]
 testpaths = "tests"
@@ -66,20 +63,6 @@ omit = [
     "firebase_messaging/proto/*",
     "firebase_messaging/decrypt.py*"
     ]
-
-[tool.isort]
-profile = "black"
-known_first_party = "firebase_messaging"
-known_third_party = ["asyncclick", "setuptools"]
-
-[tool.pylint]
-disable = ["missing-module-docstring", "missing-function-docstring", 
-"missing-class-docstring",
-"broad-exception-caught",
-"consider-using-f-string",
-]
-overgeneral-exceptions = ["builtins.Exception"]
-ignore-paths = ["firebase_messaging/proto", "firebase_messaging/decrypt.py", "tests"]
 
 [build-system]
 requires = ["poetry-core"]
