@@ -6,11 +6,13 @@ import struct
 import time
 import traceback
 from base64 import urlsafe_b64decode
-from ssl import SSLError
-from threading import Thread
-from typing import Any, Callable, Optional, List
+from contextlib import suppress as contextlib_suppress
 from dataclasses import dataclass
 from enum import Enum
+from ssl import SSLError
+from threading import Thread
+from typing import Any, Callable, List, Optional
+
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from google.protobuf.json_format import MessageToJson
@@ -35,7 +37,6 @@ from .proto.mcs_pb2 import (  # pylint: disable=no-name-in-module
     LoginResponse,
     SelectiveAck,
 )
-
 
 _logger = logging.getLogger(__name__)
 
@@ -250,10 +251,8 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
     @staticmethod
     def _make_packet(msg, include_version):
         tag = MCS_MESSAGE_TAG[type(msg)]
-        if include_version:
-            header = bytearray([MCS_VERSION, tag])
-        else:
-            header = bytearray([tag])
+
+        header = bytearray([MCS_VERSION, tag]) if include_version else bytearray([tag])
 
         payload = msg.SerializeToString()
         buf = bytes(header) + FcmPushClient._encode_varint32(len(payload)) + payload
@@ -271,7 +270,7 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
             r = await self.reader.readexactly(2)
             version, tag = struct.unpack("BB", r)
             if version < MCS_VERSION and version != 38:
-                raise RuntimeError("protocol version {} unsupported".format(version))
+                raise RuntimeError(f"protocol version {version} unsupported")
             self.first_message = False
         else:
             r = await self.reader.readexactly(1)
@@ -371,7 +370,7 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
             if x.key == key:
                 return x.value
 
-        raise RuntimeError("couldn't find in app_data {}".format(key))
+        raise RuntimeError(f"couldn't find in app_data {key}")
 
     def _handle_data_message(self, callback, msg, obj):
         _logger.debug(
@@ -394,10 +393,8 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         decrypted = self._decrypt_raw_data(
             self.credentials, crypto_key, salt, msg.raw_data
         )
-        try:
+        with contextlib_suppress((json.JSONDecodeError, ValueError)):
             decrypted_json = json.loads(decrypted.decode("utf-8"))
-        except (json.JSONDecodeError, ValueError):
-            pass
 
         ret_val = decrypted_json if decrypted_json else decrypted
         self._log_verbose(

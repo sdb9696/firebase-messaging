@@ -3,7 +3,6 @@ import time
 from typing import Optional
 
 import requests
-
 from google.protobuf.json_format import MessageToDict, MessageToJson
 
 from .const import GCM_CHECKIN_URL, GCM_REGISTER_URL, GCM_SERVER_KEY_B64
