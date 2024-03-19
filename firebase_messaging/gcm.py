@@ -73,6 +73,7 @@ def gcm_check_in(
             )
             if resp.status_code == 200:
                 acir = AndroidCheckinResponse()
+                break
             else:
                 _logger.warning(
                     "GCM checkin failed on attempt %s out of %s with status: %s, %s",
