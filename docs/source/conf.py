@@ -32,5 +32,5 @@ exclude_patterns = []
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_rtd_theme"
-autodoc_member_order = 'bysource'
+autodoc_member_order = "bysource"
 # html_static_path = ["_static"]

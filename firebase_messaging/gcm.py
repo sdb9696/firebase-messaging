@@ -1,17 +1,17 @@
 import logging
 import time
-from typing import Optional
+from typing import Optional, Union
 
 import requests
-
 from google.protobuf.json_format import MessageToDict, MessageToJson
 
 from .const import GCM_CHECKIN_URL, GCM_REGISTER_URL, GCM_SERVER_KEY_B64
-from .proto.android_checkin_pb2 import (  # pylint: disable=no-name-in-module
+from .proto.android_checkin_pb2 import (
+    DEVICE_CHROME_BROWSER,
     AndroidCheckinProto,
     ChromeBuildProto,
 )
-from .proto.checkin_pb2 import (  # pylint: disable=no-name-in-module
+from .proto.checkin_pb2 import (
     AndroidCheckinRequest,
     AndroidCheckinResponse,
 )
@@ -23,12 +23,12 @@ def _get_checkin_payload(
     android_id: Optional[int] = None, security_token: Optional[int] = None
 ):
     chrome = ChromeBuildProto()
-    chrome.platform = 3
+    chrome.platform = ChromeBuildProto.Platform.PLATFORM_LINUX  # 3
     chrome.chrome_version = "63.0.3234.0"
-    chrome.channel = 1
+    chrome.channel = ChromeBuildProto.Channel.CHANNEL_STABLE  # 1
 
     checkin = AndroidCheckinProto()
-    checkin.type = 3
+    checkin.type = DEVICE_CHROME_BROWSER  # 3
     checkin.chrome_build.CopyFrom(chrome)
 
     payload = AndroidCheckinRequest()
@@ -73,6 +73,7 @@ def gcm_check_in(
             )
             if resp.status_code == 200:
                 acir = AndroidCheckinResponse()
+                break
             else:
                 _logger.warning(
                     "GCM checkin failed on attempt %s out of %s with status: %s, %s",
@@ -132,7 +133,7 @@ def gcm_register(app_id: str, retries=5, log_debug_verbose=False):
         _logger.debug("GCM Registration request: %s", body)
 
     auth = "AidLogin {}:{}".format(chk["androidId"], chk["securityToken"])
-    last_error = None
+    last_error: Optional[Union[str, Exception]] = None
     for try_num in range(retries):
         try:
             resp = requests.post(

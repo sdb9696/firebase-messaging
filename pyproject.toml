@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "firebase-messaging"
-version = "0.2.0"
+version = "0.2.1"
 description = "FCM/GCM push notification client"
 authors = ["sdb9696 <steven.beth@gmail.com>"]
 license = "MIT"
@@ -43,18 +43,15 @@ sphinx-autodoc-typehints = {version = "^1.24.0", optional = true}
 docs = ["sphinx", "sphinx-rtd-theme", "sphinx-autodoc-typehints"]
 
 [tool.poetry.group.dev.dependencies]
-flake8 = "*"
 pre-commit = "*"
 tox = "*"
-black = "*"
-pylint = "*"
-isort = "*"
 pytest = "*"
 pytest-mock = "*"
 requests-mock = "*"
 pytest-asyncio = "*"
 pytest-cov = "*"
 async-timeout = ">=3.0.0"
+mypy-protobuf = "^3.5.0"
 
 [tool.pytest.ini_options]
 testpaths = "tests"
@@ -67,20 +64,45 @@ omit = [
     "firebase_messaging/decrypt.py*"
     ]
 
-[tool.isort]
-profile = "black"
-known_first_party = "firebase_messaging"
-known_third_party = ["asyncclick", "setuptools"]
-
-[tool.pylint]
-disable = ["missing-module-docstring", "missing-function-docstring", 
-"missing-class-docstring",
-"broad-exception-caught",
-"consider-using-f-string",
-]
-overgeneral-exceptions = ["builtins.Exception"]
-ignore-paths = ["firebase_messaging/proto", "firebase_messaging/decrypt.py", "tests"]
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py38"
+exclude = [
+    "firebase_messaging/proto/*"
+]
+select = [
+  "E",  # pycodestyle
+#  "D",  # pydocstyle
+  "F",  # pyflakes
+  "UP",  # pyupgrade
+  "B",  # flake8-bugbear
+  "SIM",  # flake8-simplify
+  "I",  # isort
+  "S",  # bandit
+]
+ignore = [
+  "D105",  # Missing docstring in magic method
+  "D107",  # Missing docstring in `__init__`
+]
+
+[tool.ruff.pydocstyle]
+convention = "pep257"
+
+[tool.ruff.per-file-ignores]
+"tests/*.py" = [
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "F401",
+    "S101", # allow asserts
+    "E501", # ignore line-too-longs
+]
+"docs/source/conf.py" = [
+    "D100",
+    "D103",
+]

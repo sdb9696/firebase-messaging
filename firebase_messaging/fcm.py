@@ -26,7 +26,7 @@ def fcm_register(sender_id, token, retries=5, log_debug_verbose=False):
     # first byte of public key is skipped for some reason
     # maybe it's always zero
 
-    private_key = ec.generate_private_key(ec.SECP256R1)
+    private_key = ec.generate_private_key(ec.SECP256R1())
     public_key = private_key.public_key()
 
     serialized_private = private_key.private_bytes(
@@ -48,7 +48,7 @@ def fcm_register(sender_id, token, retries=5, log_debug_verbose=False):
     }
     data = {
         "authorized_entity": sender_id,
-        "endpoint": "{}/{}".format(FCM_SEND_URL, token),
+        "endpoint": f"{FCM_SEND_URL}/{token}",
         "encryption_key": keys["public"],
         "encryption_auth": keys["secret"],
     }

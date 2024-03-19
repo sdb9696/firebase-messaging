@@ -6,11 +6,13 @@ import struct
 import time
 import traceback
 from base64 import urlsafe_b64decode
-from ssl import SSLError
-from threading import Thread
-from typing import Any, Callable, Optional, List
+from contextlib import suppress as contextlib_suppress
 from dataclasses import dataclass
 from enum import Enum
+from ssl import SSLError
+from threading import Thread
+from typing import Any, Callable, Dict, List, Optional
+
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from google.protobuf.json_format import MessageToJson
@@ -35,7 +37,6 @@ from .proto.mcs_pb2 import (  # pylint: disable=no-name-in-module
     LoginResponse,
     SelectiveAck,
 )
-
 
 _logger = logging.getLogger(__name__)
 
@@ -117,7 +118,7 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         self,
         *,
         credentials: Optional[dict] = None,
-        credentials_updated_callback: Optional[Callable[[str], None]] = None,
+        credentials_updated_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
         received_persistent_ids: Optional[List[str]] = None,
         config: Optional[FcmPushClientConfig] = None,
     ):
@@ -132,8 +133,8 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         self.reader = None
         self.writer = None
         self.do_listen = False
-        self.sequential_error_counters = {}
-        self.log_warn_counters = {}
+        self.sequential_error_counters: Dict[ErrorType, int] = {}
+        self.log_warn_counters: Dict[str, int] = {}
 
         # reset variables
         self.input_stream_id = 0
@@ -145,12 +146,12 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         self.run_state: FcmPushClientRunState = FcmPushClientRunState.CREATED
         self.tasks = None
 
-        self.listen_event_loop = None
-        self.callback_event_loop = None
-        self.fcm_thread = None
+        self.listen_event_loop: Optional[asyncio.AbstractEventLoop] = None
+        self.callback_event_loop: Optional[asyncio.AbstractEventLoop] = None
+        self.fcm_thread: Optional[Thread] = None
 
-        self.app_id = None
-        self.sender_id = None
+        self.app_id: Optional[str] = None
+        self.sender_id: Optional[int] = None
 
         self.reset_lock = None
         self.stopping_lock = None
@@ -250,10 +251,8 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
     @staticmethod
     def _make_packet(msg, include_version):
         tag = MCS_MESSAGE_TAG[type(msg)]
-        if include_version:
-            header = bytearray([MCS_VERSION, tag])
-        else:
-            header = bytearray([tag])
+
+        header = bytearray([MCS_VERSION, tag]) if include_version else bytearray([tag])
 
         payload = msg.SerializeToString()
         buf = bytes(header) + FcmPushClient._encode_varint32(len(payload)) + payload
@@ -271,7 +270,7 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
             r = await self.reader.readexactly(2)
             version, tag = struct.unpack("BB", r)
             if version < MCS_VERSION and version != 38:
-                raise RuntimeError("protocol version {} unsupported".format(version))
+                raise RuntimeError(f"protocol version {version} unsupported")
             self.first_message = False
         else:
             r = await self.reader.readexactly(1)
@@ -371,7 +370,7 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
             if x.key == key:
                 return x.value
 
-        raise RuntimeError("couldn't find in app_data {}".format(key))
+        raise RuntimeError(f"couldn't find in app_data {key}")
 
     def _handle_data_message(self, callback, msg, obj):
         _logger.debug(
@@ -394,10 +393,8 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         decrypted = self._decrypt_raw_data(
             self.credentials, crypto_key, salt, msg.raw_data
         )
-        try:
+        with contextlib_suppress((json.JSONDecodeError, ValueError)):
             decrypted_json = json.loads(decrypted.decode("utf-8"))
-        except (json.JSONDecodeError, ValueError):
-            pass
 
         ret_val = decrypted_json if decrypted_json else decrypted
         self._log_verbose(
@@ -792,9 +789,9 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         callback: Optional[Callable[[dict, str, Optional[Any]], None]],
         obj: Any = None,
         *,
-        listen_event_loop: asyncio.AbstractEventLoop = None,
-        callback_event_loop: asyncio.AbstractEventLoop = None,
-    ):
+        listen_event_loop: Optional[asyncio.AbstractEventLoop] = None,
+        callback_event_loop: Optional[asyncio.AbstractEventLoop] = None,
+    ) -> None:
         """Connect to FCM and start listening for push
             messages on a seperate service thread.
 
@@ -860,10 +857,10 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
                 self.fcm_thread = None
                 self.listen_event_loop = None
 
-    def is_started(self):
+    def is_started(self) -> bool:
         return self.run_state == FcmPushClientRunState.STARTED
 
-    def stop(self):
+    def stop(self) -> None:
         """Disconnects from FCM and shuts down the service thread."""
         if self.fcm_thread:
             if (
@@ -917,14 +914,15 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         dms.data = raw_data
         # Not supported yet
 
-    def send_message(self, raw_data, persistent_id):
+    def send_message(self, raw_data, persistent_id) -> None:
         """Not implemented, does nothing atm."""
         if self.fcm_thread:
             asyncio.run_coroutine_threadsafe(
-                self._send_data_message(raw_data, persistent_id), self.listen_event_loop
+                self._send_data_message(raw_data, persistent_id),
+                self.listen_event_loop,  # type: ignore[arg-type]
             )
         else:
-            self.listen_event_loop.create_task(
+            self.listen_event_loop.create_task(  # type: ignore[union-attr]
                 self._send_data_message(raw_data, persistent_id)
             )
 
