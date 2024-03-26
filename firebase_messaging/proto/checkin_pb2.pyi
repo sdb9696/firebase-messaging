@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 Request and reply to the "checkin server" devices poll every few hours.
 """
-import android_checkin_pb2
+from . import android_checkin_pb2
 import builtins
 import collections.abc
 import google.protobuf.descriptor

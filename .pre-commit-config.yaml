@@ -17,8 +17,11 @@ repos:
     - id: mypy
       args: ["--install-types", "--non-interactive", "--ignore-missing-imports"]
       additional_dependencies: [types-protobuf]
+      # Exclude the proto/*.py so when files are passed as parameters
+      # they do not cause duplicate module errors
       exclude: |
         (?x)^(
+            tests/.*|
             docs/.*|
             firebase_messaging/proto/.*py$
         )$
