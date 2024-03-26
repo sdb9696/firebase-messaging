@@ -6,7 +6,7 @@ import os
 import threading
 
 import pytest
-import requests_mock
+from aioresponses import CallbackResult, aioresponses
 from google.protobuf.json_format import Parse as JsonParse
 
 from firebase_messaging.fcmpushclient import FcmPushClient, FcmPushClientConfig
@@ -61,7 +61,7 @@ async def logged_in_push_client(request, fake_mcs_endpoint, mocker, caplog):
     ):
         config = FcmPushClientConfig(**config_kwargs)
         pr = FcmPushClient(credentials=credentials, config=config)
-        pr.checkin(1234, 4321)
+        await pr.checkin(1234, 4321)
 
         cb_loop = asyncio.get_running_loop() if callback_loop else None
         pr.start(
@@ -91,23 +91,21 @@ async def logged_in_push_client(request, fake_mcs_endpoint, mocker, caplog):
             k.stop()
 
 
-# setting the fixture name to requests_mock allows other
-# tests to pull in request_mock and append uris
-@pytest.fixture(autouse=True, name="requests_mock")
-def requests_mock_fixture():
-    with requests_mock.Mocker() as mock:
+@pytest.fixture(autouse=True, name="aioresponses_mock")
+def aioresponses_mock_fixture():
+    with aioresponses() as mock:
         mock.post(
             "https://android.clients.google.com/checkin",
-            content=load_fixture_as_msg(
+            body=load_fixture_as_msg(
                 "android_checkin_response.json", AndroidCheckinResponse
             ).SerializeToString(),
         )
         mock.post(
             "https://android.clients.google.com/c2dm/register3",
-            text=load_fixture("gcm_register_response.txt"),
+            body=load_fixture("gcm_register_response.txt"),
         )
         mock.post(
             "https://fcm.googleapis.com/fcm/connect/subscribe",
-            json=load_fixture_as_dict("fcm_register_response.json"),
+            payload=load_fixture_as_dict("fcm_register_response.json"),
         )
         yield mock

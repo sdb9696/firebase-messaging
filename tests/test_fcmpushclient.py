@@ -19,9 +19,9 @@ from firebase_messaging.proto.mcs_pb2 import (
 from tests.conftest import load_fixture_as_dict, load_fixture_as_msg
 
 
-def test_register(requests_mock):
+async def test_register():
     pr = FcmPushClient(credentials=None)
-    pr.checkin(1234, 4321)
+    await pr.checkin(1234, 4321)
 
 
 async def test_no_disconnect(logged_in_push_client, fake_mcs_endpoint, mocker, caplog):
