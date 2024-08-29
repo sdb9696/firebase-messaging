@@ -8,6 +8,7 @@ found in the LICENSE file.
 Logging information for Android "checkin" events (automatic, periodic
 requests made by Android devices to the server).
 """
+
 import builtins
 import google.protobuf.descriptor
 import google.protobuf.internal.enum_type_wrapper
@@ -26,7 +27,10 @@ class _DeviceType:
     ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
 
-class _DeviceTypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_DeviceType.ValueType], builtins.type):
+class _DeviceTypeEnumTypeWrapper(
+    google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_DeviceType.ValueType],
+    builtins.type,
+):
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
     DEVICE_ANDROID_OS: _DeviceType.ValueType  # 1
     """Android Device"""
@@ -62,7 +66,12 @@ class ChromeBuildProto(google.protobuf.message.Message):
         ValueType = typing.NewType("ValueType", builtins.int)
         V: typing_extensions.TypeAlias = ValueType
 
-    class _PlatformEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[ChromeBuildProto._Platform.ValueType], builtins.type):
+    class _PlatformEnumTypeWrapper(
+        google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[
+            ChromeBuildProto._Platform.ValueType
+        ],
+        builtins.type,
+    ):
         DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
         PLATFORM_WIN: ChromeBuildProto._Platform.ValueType  # 1
         PLATFORM_MAC: ChromeBuildProto._Platform.ValueType  # 2
@@ -89,7 +98,12 @@ class ChromeBuildProto(google.protobuf.message.Message):
         ValueType = typing.NewType("ValueType", builtins.int)
         V: typing_extensions.TypeAlias = ValueType
 
-    class _ChannelEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[ChromeBuildProto._Channel.ValueType], builtins.type):
+    class _ChannelEnumTypeWrapper(
+        google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[
+            ChromeBuildProto._Channel.ValueType
+        ],
+        builtins.type,
+    ):
         DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
         CHANNEL_STABLE: ChromeBuildProto._Channel.ValueType  # 1
         CHANNEL_BETA: ChromeBuildProto._Channel.ValueType  # 2
@@ -122,8 +136,28 @@ class ChromeBuildProto(google.protobuf.message.Message):
         chrome_version: builtins.str | None = ...,
         channel: global___ChromeBuildProto.Channel.ValueType | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["channel", b"channel", "chrome_version", b"chrome_version", "platform", b"platform"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["channel", b"channel", "chrome_version", b"chrome_version", "platform", b"platform"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions.Literal[
+            "channel",
+            b"channel",
+            "chrome_version",
+            b"chrome_version",
+            "platform",
+            b"platform",
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions.Literal[
+            "channel",
+            b"channel",
+            "chrome_version",
+            b"chrome_version",
+            "platform",
+            b"platform",
+        ],
+    ) -> None: ...
 
 global___ChromeBuildProto = ChromeBuildProto
 
@@ -181,7 +215,43 @@ class AndroidCheckinProto(google.protobuf.message.Message):
         type: global___DeviceType.ValueType | None = ...,
         chrome_build: global___ChromeBuildProto | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["cell_operator", b"cell_operator", "chrome_build", b"chrome_build", "last_checkin_msec", b"last_checkin_msec", "roaming", b"roaming", "sim_operator", b"sim_operator", "type", b"type", "user_number", b"user_number"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["cell_operator", b"cell_operator", "chrome_build", b"chrome_build", "last_checkin_msec", b"last_checkin_msec", "roaming", b"roaming", "sim_operator", b"sim_operator", "type", b"type", "user_number", b"user_number"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions.Literal[
+            "cell_operator",
+            b"cell_operator",
+            "chrome_build",
+            b"chrome_build",
+            "last_checkin_msec",
+            b"last_checkin_msec",
+            "roaming",
+            b"roaming",
+            "sim_operator",
+            b"sim_operator",
+            "type",
+            b"type",
+            "user_number",
+            b"user_number",
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions.Literal[
+            "cell_operator",
+            b"cell_operator",
+            "chrome_build",
+            b"chrome_build",
+            "last_checkin_msec",
+            b"last_checkin_msec",
+            "roaming",
+            b"roaming",
+            "sim_operator",
+            b"sim_operator",
+            "type",
+            b"type",
+            "user_number",
+            b"user_number",
+        ],
+    ) -> None: ...
 
 global___AndroidCheckinProto = AndroidCheckinProto

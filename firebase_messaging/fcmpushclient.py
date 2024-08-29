@@ -12,7 +12,7 @@ from base64 import urlsafe_b64decode
 from contextlib import suppress as contextlib_suppress
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Dict
+from typing import TYPE_CHECKING, Any, Callable
 
 from aiohttp import ClientSession
 from cryptography.hazmat.backends import default_backend
@@ -42,8 +42,8 @@ from .proto.mcs_pb2 import (  # pylint: disable=no-name-in-module
 
 _logger = logging.getLogger(__name__)
 
-OnNotificationCallable = Callable[[Dict[str, Any], str, Any], None]
-CredentialsUpdatedCallable = Callable[[Dict[str, Any]], None]
+OnNotificationCallable = Callable[[dict[str, Any], str, Any], None]
+CredentialsUpdatedCallable = Callable[[dict[str, Any]], None]
 
 
 class ErrorType(Enum):
