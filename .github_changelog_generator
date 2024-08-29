@@ -1,0 +1,12 @@
+output=CHANGELOG.md
+user=sdb9696
+project=firebase-messaging
+release-branch=main
+base=HISTORY.md
+since-tag=0.2.1
+usernames-as-github-logins=true
+add-sections={"docs":{"prefix":"**Documentation updates:**","labels":["documentation"]},"maintenance":{"prefix":"**Project maintenance:**","labels":["maintenance"]}}
+exclude-labels=duplicate,question,invalid,wontfix,release-prep,stale,bug
+issues-wo-labels=false
+bug-labels=bugfix
+breaking-label=**Breaking change pull requests:**

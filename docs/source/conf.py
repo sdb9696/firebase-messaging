@@ -23,6 +23,11 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.viewcode",
     "sphinx.ext.todo",
+    "myst_parser",
+]
+
+myst_enable_extensions = [
+    "colon_fence",
 ]
 
 templates_path = ["_templates"]
