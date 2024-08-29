@@ -23,8 +23,8 @@ export NEW_RELEASE=x.x.x
 
 ```bash
 git checkout main
-git fetch upstream main
-git rebase upstream/main
+git fetch origin main
+git rebase origin/main
 git checkout -b release/$NEW_RELEASE
 ```
 
@@ -111,7 +111,7 @@ echo "$RELEASE_NOTES"  # Check the output and copy paste if neccessary
 
 ```bash
 git commit --all --verbose -m "Prepare $NEW_RELEASE"
-git push upstream release/$NEW_RELEASE -u
+git push origin release/$NEW_RELEASE -u
 ```
 
 ### Create a PR for the release, merge it, and re-fetch the main
@@ -133,8 +133,8 @@ gh pr merge --squash --body "$RELEASE_NOTES"
 
 ```bash
 git checkout main
-git fetch upstream main
-git rebase upstream/main
+git fetch origin main
+git rebase origin/main
 ```
 
 ### Create a release tag
@@ -143,7 +143,7 @@ Note, add changelog release notes as the tag commit message so `gh release creat
 
 ```bash
 git tag --annotate $NEW_RELEASE -m "$RELEASE_NOTES"  # to create a signed tag replace --annotate with --sign
-git push upstream $NEW_RELEASE
+git push origin $NEW_RELEASE
 ```
 
 ### Create release
