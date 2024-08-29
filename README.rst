@@ -46,26 +46,34 @@ PyPi::
 Requirements
 ------------
 
-- Firebase sender id to receive notification
-- Firebase serverKey to send notification (optional)
+- Firebase configuration to receive notifications
 
 Usage
 -----
 
+Must be run inside an asyncio event loop.
+
 python::
 
-    from firebase_messaging import FcmPushClient
+    from firebase_messaging import FcmPushClient, FcmRegisterConfig
 
     def on_notification(obj, notification, data_message):
         # Do something with the notification
         pass
 
-    pc = FcmPushClient(None)
-    fcm_token = pc.checkin(sender_id, app_id)
+    credentials = None  # Start off with none or load from previous save
+    def on_credentials_updated(creds):
+        # save the credentials to a file here for future use
 
-    # Notify the service you're connecting to of your FCM token
+    fcm_config = FcmRegisterConfig(fcm-project-id, fcm-app-id, fcm-api-key, fcm-message-sender-id)
+    pc = FcmPushClient(on_notification, fcm_config, credentials, on_credentials_updated)
+    fcm_token = await pc.checkin_or_register()
 
-    pc.start(YOUR_NOTIFICATION_CALLBACK)
+    await pc.start()
+
+    # Adapt the following for your usage
+    while some_condition_to_keep_listening:
+        asyncio.sleep(2)
 
 
 Attribution
