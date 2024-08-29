@@ -86,7 +86,7 @@ jobs:
       - name: Run tests
         run: >
           poetry run pytest tests/
-          --cov=ring_doorbell --cov-report=xml
+          --cov=firebase_messaging --cov-report=xml
           --cov-report=term-missing --import-mode importlib
       - name: Coveralls GitHub Action
         uses: coverallsapp/github-action@v2.2.3
