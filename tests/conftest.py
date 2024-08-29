@@ -4,12 +4,17 @@ import json
 import logging
 import os
 import threading
+from unittest.mock import patch
 
 import pytest
 from aioresponses import CallbackResult, aioresponses
 from google.protobuf.json_format import Parse as JsonParse
 
-from firebase_messaging.fcmpushclient import FcmPushClient, FcmPushClientConfig
+from firebase_messaging.fcmpushclient import (
+    FcmPushClient,
+    FcmPushClientConfig,
+    FcmRegisterConfig,
+)
 from firebase_messaging.proto.checkin_pb2 import AndroidCheckinResponse
 from firebase_messaging.proto.mcs_pb2 import LoginResponse
 from tests.fakes import FakeMcsEndpoint
@@ -36,59 +41,56 @@ def load_fixture_as_msg(filename, msg_class):
 
 @pytest.fixture()
 async def fake_mcs_endpoint():
-    # async with McsEndpoint() as ep:
-    ep = FakeMcsEndpoint()
-    yield ep
+    fmce = FakeMcsEndpoint()
 
-    ep.close()
+    async def _mock_open_conn(*_, **__):
+        return fmce.client_reader, fmce.client_writer
+
+    with patch("asyncio.open_connection", side_effect=_mock_open_conn, autospec=True):
+        yield fmce
+
+    fmce.close()
 
 
-@pytest.fixture(params=[None, "loop"], ids=["loop_created", "loop_provided"])
+@pytest.fixture()
 async def logged_in_push_client(request, fake_mcs_endpoint, mocker, caplog):
     clients = {}
     caplog.set_level(logging.DEBUG)
 
-    listen_loop = asyncio.get_running_loop() if request.param else None
-
     async def _logged_in_push_client(
-        credentials,
         msg_callback,
-        callback_obj=None,
-        callback_loop=None,
+        credentials,
         *,
+        callback_obj=None,
         supress_disconnect=False,
         **config_kwargs,
     ):
         config = FcmPushClientConfig(**config_kwargs)
-        pr = FcmPushClient(credentials=credentials, config=config)
-        await pr.checkin(1234, 4321)
-
-        cb_loop = asyncio.get_running_loop() if callback_loop else None
-        pr.start(
+        fcm_config = FcmRegisterConfig("project-1234", "bar", "foobar", "foobar")
+        pr = FcmPushClient(
             msg_callback,
-            callback_obj,
-            listen_event_loop=listen_loop,
-            callback_event_loop=cb_loop,
+            fcm_config,
+            credentials,
+            None,
+            callback_context=callback_obj,
+            config=config,
         )
+        await pr.checkin_or_register()
+
+        await pr.start()
 
         await fake_mcs_endpoint.get_message()
         lr = load_fixture_as_msg("login_response.json", LoginResponse)
         await fake_mcs_endpoint.put_message(lr)
         clients[pr] = supress_disconnect
 
-        tc = 1 if listen_loop else 2
-        assert len(threading.enumerate()) == tc
-        if listen_loop:
-            assert pr.listen_event_loop == asyncio.get_running_loop()
-        else:
-            assert pr.listen_event_loop != asyncio.get_running_loop()
         return pr
 
     yield _logged_in_push_client
 
     for k, v in clients.items():
         if not v:
-            k.stop()
+            await k.stop()
 
 
 @pytest.fixture(autouse=True, name="aioresponses_mock")
@@ -105,7 +107,11 @@ def aioresponses_mock_fixture():
             body=load_fixture("gcm_register_response.txt"),
         )
         mock.post(
-            "https://fcm.googleapis.com/fcm/connect/subscribe",
+            "https://firebaseinstallations.googleapis.com/v1/projects/project-1234/installations",
+            payload=load_fixture_as_dict("fcm_install_response.json"),
+        )
+        mock.post(
+            "https://fcmregistrations.googleapis.com/v1/projects/project-1234/registrations",
             payload=load_fixture_as_dict("fcm_register_response.json"),
         )
         yield mock

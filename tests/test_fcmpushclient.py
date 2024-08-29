@@ -7,7 +7,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from http_ece import encrypt
 
-from firebase_messaging import FcmPushClient
+from firebase_messaging import FcmPushClient, FcmRegisterConfig
 from firebase_messaging.proto.mcs_pb2 import (
     Close,
     DataMessageStanza,
@@ -20,22 +20,10 @@ from tests.conftest import load_fixture_as_dict, load_fixture_as_msg
 
 
 async def test_register():
-    pr = FcmPushClient(credentials=None)
-    await pr.checkin(1234, 4321)
-
-
-async def test_no_disconnect(logged_in_push_client, fake_mcs_endpoint, mocker, caplog):
-    pr = await logged_in_push_client(None, None, supress_disconnect=True)
-
-    pr.__del__()
-    await asyncio.sleep(0.1)
-    assert (
-        len([record for record in caplog.records if record.levelname == "ERROR"]) == 0
+    pr = FcmPushClient(
+        None, FcmRegisterConfig("project-1234", "bar", "foobar", "foobar"), None
     )
-
-    assert "FCMClient has shutdown" in [
-        record.message for record in caplog.records if record.levelname == "INFO"
-    ]
+    await pr.checkin_or_register()
 
 
 async def test_login(logged_in_push_client, fake_mcs_endpoint, mocker, caplog):
@@ -50,11 +38,8 @@ async def test_login(logged_in_push_client, fake_mcs_endpoint, mocker, caplog):
     ]
 
 
-@pytest.mark.parametrize(
-    "callback_loop", [None, "loop"], ids=["no_cb_loop_param", "cb_loop_param"]
-)
 async def test_data_message_receive(
-    logged_in_push_client, fake_mcs_endpoint, mocker, caplog, callback_loop
+    logged_in_push_client, fake_mcs_endpoint, mocker, caplog
 ):
     notification = None
     persistent_id = None
@@ -73,8 +58,8 @@ async def test_data_message_receive(
 
     credentials = load_fixture_as_dict("credentials.json")
     obj = "Foobar"
-    cb_loop_param = asyncio.get_running_loop() if callback_loop else None
-    pr = await logged_in_push_client(credentials, on_msg, obj, cb_loop_param)
+
+    await logged_in_push_client(on_msg, credentials, callback_obj=obj)
 
     dms = load_fixture_as_msg("data_message_stanza.json", DataMessageStanza)
     await fake_mcs_endpoint.put_message(dms)
@@ -89,11 +74,6 @@ async def test_data_message_receive(
     assert persistent_id == dms.persistent_id
     assert obj == callback_obj
 
-    if callback_loop:
-        assert cb_loop == asyncio.get_running_loop()
-    else:
-        assert cb_loop == pr.listen_event_loop
-
 
 async def test_connection_reset(logged_in_push_client, fake_mcs_endpoint, mocker):
     # ConnectionResetError, TimeoutError, SSLError
@@ -101,14 +81,12 @@ async def test_connection_reset(logged_in_push_client, fake_mcs_endpoint, mocker
         None, None, abort_on_sequential_error_count=3, reset_interval=0.1
     )
 
-    mocker.patch.object(FcmPushClient, "_reset", wraps=pr._reset)
-
-    assert pr._reset.call_count == 0
+    reset_spy = mocker.spy(pr, "_reset")
 
     await fake_mcs_endpoint.put_error(ConnectionResetError())
 
     await asyncio.sleep(0.1)
-    assert pr._reset.call_count == 1
+    assert reset_spy.call_count == 1
 
     msg = await fake_mcs_endpoint.get_message()
     assert isinstance(msg, LoginRequest)
@@ -118,15 +96,12 @@ async def test_connection_reset(logged_in_push_client, fake_mcs_endpoint, mocker
 async def test_terminate(
     logged_in_push_client, fake_mcs_endpoint, mocker, error_count, caplog
 ):
-    # ConnectionResetError, TimeoutError, SSLError
     pr = await logged_in_push_client(
         None, None, abort_on_sequential_error_count=error_count, reset_interval=0
     )
 
-    mocker.patch.object(FcmPushClient, "_reset", wraps=pr._reset)
-    mocker.patch.object(FcmPushClient, "_terminate", wraps=pr._terminate)
-
-    assert pr._reset.call_count == 0
+    reset_spy = mocker.spy(pr, "_reset")
+    term_spy = mocker.spy(pr, "_terminate")
 
     for i in range(1, error_count + 1):
         await fake_mcs_endpoint.put_error(ConnectionResetError())
@@ -134,13 +109,13 @@ async def test_terminate(
         await asyncio.sleep(0.1)
         # client should reset while it gets errors < abort_on_sequential_error_count then it should terminate
         if i < error_count:
-            assert pr._reset.call_count == i
-            assert pr._terminate.call_count == 0
+            assert reset_spy.call_count == i
+            assert term_spy.call_count == 0
             msg = await fake_mcs_endpoint.get_message()
             assert isinstance(msg, LoginRequest)
         else:
-            assert pr._reset.call_count == i - 1
-            assert pr._terminate.call_count == 1
+            assert reset_spy.call_count == i - 1
+            assert term_spy.call_count == 1
 
 
 async def test_heartbeat_receive(logged_in_push_client, fake_mcs_endpoint, caplog):

@@ -1,4 +1,9 @@
 {
-    "token": "zyxXYZ01234:APA91b01234abcdefghijklmnopqrstuvwxyz_ABCDEFGHIJKLMNOPQRSTUVWXYZ-0123456789_abcdefghijklmnopqrstuvwxyz_ABCDEFGHIJKLMNOPQRSTUVWXYZ-0123456789",
-    "pushSet": "01234zyxXYZ:APA91b43210zyxwvutsrqponmlkjihgfedcba_ZYXWVUTSRQPONMLKJIHGFEDCBA-9876543210_zyxwvutsrqponmlkjihgfedcba_ZYXWVUTSRQPONMLKJIHGFEDCBA-9876543210"
+    "name": "projects/project-1234/registrations/abcdefghijklmnopqrstuvwxyz-0123456789_ABCDEFGHIJKLMNOPQRSTUVWXYZ-01234abcdefghijklmnopqrstuvwxyz_XYZ01234zyx:APA91b0123456789_ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "token": "abcdefghijklmnopqrstuvwxyz-0123456789_ABCDEFGHIJKLMNOPQRSTUVWXYZ-01234abcdefghijklmnopqrstuvwxyz_XYZ01234zyx:APA91b0123456789_ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "web": {
+        "endpoint": "https://fcm.googleapis.com/fcm/send/XYZ01234zyx:APA91b0123456789_ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz-0123456789_ABCDEFGHIJKLMNOPQRSTUVWXYZ-01234abcdefghijklmnopqrstuvwxyz",
+        "p256dh": "123456967219824KDJDOWFNAFW=",
+        "auth": "DSFNDSAKGFAGFA=="
+    }
 }

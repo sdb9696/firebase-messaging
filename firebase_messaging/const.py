@@ -25,8 +25,16 @@ GCM_SERVER_KEY_B64 = (
     + "j8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4"
 )
 
-FCM_SUBSCRIBE_URL = "https://fcm.googleapis.com/fcm/connect/subscribe"
-FCM_SEND_URL = "https://fcm.googleapis.com/fcm/send"
+FCM_SUBSCRIBE_URL = "https://fcm.googleapis.com/fcm/connect/subscribe/"
+FCM_SEND_URL = "https://fcm.googleapis.com/fcm/send/"
+
+FCM_API = "https://fcm.googleapis.com/v1/"
+FCM_REGISTRATION = "https://fcmregistrations.googleapis.com/v1/"
+FCM_INSTALLATION = "https://firebaseinstallations.googleapis.com/v1/"
+AUTH_VERSION = "FIS_v2"
+SDK_VERSION = "w:0.6.6"
+
+DOORBELLS_ENDPOINT = "/clients_api/doorbots/{0}"
 
 MCS_VERSION = 41
 MCS_HOST = "mtalk.google.com"
