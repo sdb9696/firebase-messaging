@@ -1,4 +1,5 @@
 """The tests for the Ring platform."""
+
 import asyncio
 from base64 import standard_b64encode, urlsafe_b64decode
 

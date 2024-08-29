@@ -1,31 +1,46 @@
 repos:
-- repo: https://github.com/python-poetry/poetry
-  rev: 1.6.0
+
+-   repo: https://github.com/python-poetry/poetry
+    rev: "1.8"
+    hooks:
+    -   id: poetry-check
+
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.6.0
   hooks:
-    - id: poetry-check
+  - id: trailing-whitespace
+  - id: end-of-file-fixer
+  - id: check-docstring-first
+  - id: check-yaml
+  - id: debug-statements
+  - id: check-ast
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.1.3
+  rev: v0.6.1
   hooks:
     - id: ruff
       args: [--fix, --exit-non-zero-on-fix]
-    - id: ruff-format  
-    
-- repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.9.0
+    - id: ruff-format
+
+- repo: https://github.com/PyCQA/doc8
+  rev: 'v1.1.1'
   hooks:
-    - id: mypy
-      args: ["--install-types", "--non-interactive", "--ignore-missing-imports"]
-      additional_dependencies: [types-protobuf]
-      # Exclude the proto/*.py so when files are passed as parameters
-      # they do not cause duplicate module errors
-      exclude: |
-        (?x)^(
-            tests/.*|
-            docs/.*|
-            firebase_messaging/proto/.*py$
-        )$
+  - id: doc8
+    additional_dependencies: [tomli]
 
-
-
-
+- repo: local
+  hooks:
+  # Run mypy in the virtual environment so it uses the installed dependencies
+  # for more accurate checking than using the pre-commit mypy mirror
+  - id: mypy
+    name: mypy
+    entry: ./run-in-env.sh mypy
+    language: system
+    types_or: [python, pyi]
+    require_serial: true
+    exclude: |  # exclude required because --all-files passes py and pyi
+      (?x)^(
+          docs/.*|
+          tests/.*|
+          firebase_messaging/proto/.*py$
+      )$

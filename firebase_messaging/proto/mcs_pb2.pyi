@@ -8,6 +8,7 @@ found in the LICENSE file.
 MCS protocol for communication between Chrome client and Mobile Connection
 Server .
 """
+
 import builtins
 import collections.abc
 import google.protobuf.descriptor
@@ -53,8 +54,28 @@ class HeartbeatPing(google.protobuf.message.Message):
         last_stream_id_received: builtins.int | None = ...,
         status: builtins.int | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["last_stream_id_received", b"last_stream_id_received", "status", b"status", "stream_id", b"stream_id"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["last_stream_id_received", b"last_stream_id_received", "status", b"status", "stream_id", b"stream_id"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions.Literal[
+            "last_stream_id_received",
+            b"last_stream_id_received",
+            "status",
+            b"status",
+            "stream_id",
+            b"stream_id",
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions.Literal[
+            "last_stream_id_received",
+            b"last_stream_id_received",
+            "status",
+            b"status",
+            "stream_id",
+            b"stream_id",
+        ],
+    ) -> None: ...
 
 global___HeartbeatPing = HeartbeatPing
 
@@ -79,8 +100,28 @@ class HeartbeatAck(google.protobuf.message.Message):
         last_stream_id_received: builtins.int | None = ...,
         status: builtins.int | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["last_stream_id_received", b"last_stream_id_received", "status", b"status", "stream_id", b"stream_id"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["last_stream_id_received", b"last_stream_id_received", "status", b"status", "stream_id", b"stream_id"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions.Literal[
+            "last_stream_id_received",
+            b"last_stream_id_received",
+            "status",
+            b"status",
+            "stream_id",
+            b"stream_id",
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions.Literal[
+            "last_stream_id_received",
+            b"last_stream_id_received",
+            "status",
+            b"status",
+            "stream_id",
+            b"stream_id",
+        ],
+    ) -> None: ...
 
 global___HeartbeatAck = HeartbeatAck
 
@@ -105,8 +146,32 @@ class ErrorInfo(google.protobuf.message.Message):
         type: builtins.str | None = ...,
         extension: global___Extension | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["code", b"code", "extension", b"extension", "message", b"message", "type", b"type"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["code", b"code", "extension", b"extension", "message", b"message", "type", b"type"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions.Literal[
+            "code",
+            b"code",
+            "extension",
+            b"extension",
+            "message",
+            b"message",
+            "type",
+            b"type",
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions.Literal[
+            "code",
+            b"code",
+            "extension",
+            b"extension",
+            "message",
+            b"message",
+            "type",
+            b"type",
+        ],
+    ) -> None: ...
 
 global___ErrorInfo = ErrorInfo
 
@@ -131,8 +196,12 @@ class Setting(google.protobuf.message.Message):
         name: builtins.str | None = ...,
         value: builtins.str | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["name", b"name", "value", b"value"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "value", b"value"]) -> None: ...
+    def HasField(
+        self, field_name: typing_extensions.Literal["name", b"name", "value", b"value"]
+    ) -> builtins.bool: ...
+    def ClearField(
+        self, field_name: typing_extensions.Literal["name", b"name", "value", b"value"]
+    ) -> None: ...
 
 global___Setting = Setting
 
@@ -153,8 +222,18 @@ class HeartbeatStat(google.protobuf.message.Message):
         timeout: builtins.bool | None = ...,
         interval_ms: builtins.int | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["interval_ms", b"interval_ms", "ip", b"ip", "timeout", b"timeout"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["interval_ms", b"interval_ms", "ip", b"ip", "timeout", b"timeout"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions.Literal[
+            "interval_ms", b"interval_ms", "ip", b"ip", "timeout", b"timeout"
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions.Literal[
+            "interval_ms", b"interval_ms", "ip", b"ip", "timeout", b"timeout"
+        ],
+    ) -> None: ...
 
 global___HeartbeatStat = HeartbeatStat
 
@@ -175,8 +254,18 @@ class HeartbeatConfig(google.protobuf.message.Message):
         ip: builtins.str | None = ...,
         interval_ms: builtins.int | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["interval_ms", b"interval_ms", "ip", b"ip", "upload_stat", b"upload_stat"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["interval_ms", b"interval_ms", "ip", b"ip", "upload_stat", b"upload_stat"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions.Literal[
+            "interval_ms", b"interval_ms", "ip", b"ip", "upload_stat", b"upload_stat"
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions.Literal[
+            "interval_ms", b"interval_ms", "ip", b"ip", "upload_stat", b"upload_stat"
+        ],
+    ) -> None: ...
 
 global___HeartbeatConfig = HeartbeatConfig
 
@@ -192,7 +281,12 @@ class ClientEvent(google.protobuf.message.Message):
         ValueType = typing.NewType("ValueType", builtins.int)
         V: typing_extensions.TypeAlias = ValueType
 
-    class _TypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[ClientEvent._Type.ValueType], builtins.type):
+    class _TypeEnumTypeWrapper(
+        google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[
+            ClientEvent._Type.ValueType
+        ],
+        builtins.type,
+    ):
         DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
         UNKNOWN: ClientEvent._Type.ValueType  # 0
         DISCARDED_EVENTS: ClientEvent._Type.ValueType  # 1
@@ -251,8 +345,44 @@ class ClientEvent(google.protobuf.message.Message):
         error_code: builtins.int | None = ...,
         time_connection_established_ms: builtins.int | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["error_code", b"error_code", "network_type", b"network_type", "number_discarded_events", b"number_discarded_events", "time_connection_ended_ms", b"time_connection_ended_ms", "time_connection_established_ms", b"time_connection_established_ms", "time_connection_started_ms", b"time_connection_started_ms", "type", b"type"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["error_code", b"error_code", "network_type", b"network_type", "number_discarded_events", b"number_discarded_events", "time_connection_ended_ms", b"time_connection_ended_ms", "time_connection_established_ms", b"time_connection_established_ms", "time_connection_started_ms", b"time_connection_started_ms", "type", b"type"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions.Literal[
+            "error_code",
+            b"error_code",
+            "network_type",
+            b"network_type",
+            "number_discarded_events",
+            b"number_discarded_events",
+            "time_connection_ended_ms",
+            b"time_connection_ended_ms",
+            "time_connection_established_ms",
+            b"time_connection_established_ms",
+            "time_connection_started_ms",
+            b"time_connection_started_ms",
+            "type",
+            b"type",
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions.Literal[
+            "error_code",
+            b"error_code",
+            "network_type",
+            b"network_type",
+            "number_discarded_events",
+            b"number_discarded_events",
+            "time_connection_ended_ms",
+            b"time_connection_ended_ms",
+            "time_connection_established_ms",
+            b"time_connection_established_ms",
+            "time_connection_started_ms",
+            b"time_connection_started_ms",
+            "type",
+            b"type",
+        ],
+    ) -> None: ...
 
 global___ClientEvent = ClientEvent
 
@@ -268,7 +398,12 @@ class LoginRequest(google.protobuf.message.Message):
         ValueType = typing.NewType("ValueType", builtins.int)
         V: typing_extensions.TypeAlias = ValueType
 
-    class _AuthServiceEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[LoginRequest._AuthService.ValueType], builtins.type):
+    class _AuthServiceEnumTypeWrapper(
+        google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[
+            LoginRequest._AuthService.ValueType
+        ],
+        builtins.type,
+    ):
         DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
         ANDROID_ID: LoginRequest._AuthService.ValueType  # 2
 
@@ -310,9 +445,15 @@ class LoginRequest(google.protobuf.message.Message):
     last_rmq_id: builtins.int
     """RMQ1 - no longer used"""
     @property
-    def setting(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Setting]: ...
+    def setting(
+        self,
+    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[
+        global___Setting
+    ]: ...
     @property
-    def received_persistent_id(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
+    def received_persistent_id(
+        self,
+    ) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """optional int32 compress = 9;"""
     adaptive_heartbeat: builtins.bool
     """Replaced by "rmq2v" setting
@@ -328,7 +469,11 @@ class LoginRequest(google.protobuf.message.Message):
     network_type: builtins.int
     status: builtins.int
     @property
-    def client_event(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ClientEvent]:
+    def client_event(
+        self,
+    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[
+        global___ClientEvent
+    ]:
         """Events recorded on the client after the last successful connection."""
     def __init__(
         self,
@@ -351,8 +496,78 @@ class LoginRequest(google.protobuf.message.Message):
         status: builtins.int | None = ...,
         client_event: collections.abc.Iterable[global___ClientEvent] | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["account_id", b"account_id", "adaptive_heartbeat", b"adaptive_heartbeat", "auth_service", b"auth_service", "auth_token", b"auth_token", "device_id", b"device_id", "domain", b"domain", "heartbeat_stat", b"heartbeat_stat", "id", b"id", "last_rmq_id", b"last_rmq_id", "network_type", b"network_type", "resource", b"resource", "status", b"status", "use_rmq2", b"use_rmq2", "user", b"user"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["account_id", b"account_id", "adaptive_heartbeat", b"adaptive_heartbeat", "auth_service", b"auth_service", "auth_token", b"auth_token", "client_event", b"client_event", "device_id", b"device_id", "domain", b"domain", "heartbeat_stat", b"heartbeat_stat", "id", b"id", "last_rmq_id", b"last_rmq_id", "network_type", b"network_type", "received_persistent_id", b"received_persistent_id", "resource", b"resource", "setting", b"setting", "status", b"status", "use_rmq2", b"use_rmq2", "user", b"user"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions.Literal[
+            "account_id",
+            b"account_id",
+            "adaptive_heartbeat",
+            b"adaptive_heartbeat",
+            "auth_service",
+            b"auth_service",
+            "auth_token",
+            b"auth_token",
+            "device_id",
+            b"device_id",
+            "domain",
+            b"domain",
+            "heartbeat_stat",
+            b"heartbeat_stat",
+            "id",
+            b"id",
+            "last_rmq_id",
+            b"last_rmq_id",
+            "network_type",
+            b"network_type",
+            "resource",
+            b"resource",
+            "status",
+            b"status",
+            "use_rmq2",
+            b"use_rmq2",
+            "user",
+            b"user",
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions.Literal[
+            "account_id",
+            b"account_id",
+            "adaptive_heartbeat",
+            b"adaptive_heartbeat",
+            "auth_service",
+            b"auth_service",
+            "auth_token",
+            b"auth_token",
+            "client_event",
+            b"client_event",
+            "device_id",
+            b"device_id",
+            "domain",
+            b"domain",
+            "heartbeat_stat",
+            b"heartbeat_stat",
+            "id",
+            b"id",
+            "last_rmq_id",
+            b"last_rmq_id",
+            "network_type",
+            b"network_type",
+            "received_persistent_id",
+            b"received_persistent_id",
+            "resource",
+            b"resource",
+            "setting",
+            b"setting",
+            "status",
+            b"status",
+            "use_rmq2",
+            b"use_rmq2",
+            "user",
+            b"user",
+        ],
+    ) -> None: ...
 
 global___LoginRequest = LoginRequest
 
@@ -379,7 +594,11 @@ class LoginResponse(google.protobuf.message.Message):
     def error(self) -> global___ErrorInfo:
         """Null if login was ok."""
     @property
-    def setting(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Setting]: ...
+    def setting(
+        self,
+    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[
+        global___Setting
+    ]: ...
     stream_id: builtins.int
     last_stream_id_received: builtins.int
     """Should be "1" """
@@ -399,8 +618,46 @@ class LoginResponse(google.protobuf.message.Message):
         heartbeat_config: global___HeartbeatConfig | None = ...,
         server_timestamp: builtins.int | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["error", b"error", "heartbeat_config", b"heartbeat_config", "id", b"id", "jid", b"jid", "last_stream_id_received", b"last_stream_id_received", "server_timestamp", b"server_timestamp", "stream_id", b"stream_id"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["error", b"error", "heartbeat_config", b"heartbeat_config", "id", b"id", "jid", b"jid", "last_stream_id_received", b"last_stream_id_received", "server_timestamp", b"server_timestamp", "setting", b"setting", "stream_id", b"stream_id"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions.Literal[
+            "error",
+            b"error",
+            "heartbeat_config",
+            b"heartbeat_config",
+            "id",
+            b"id",
+            "jid",
+            b"jid",
+            "last_stream_id_received",
+            b"last_stream_id_received",
+            "server_timestamp",
+            b"server_timestamp",
+            "stream_id",
+            b"stream_id",
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions.Literal[
+            "error",
+            b"error",
+            "heartbeat_config",
+            b"heartbeat_config",
+            "id",
+            b"id",
+            "jid",
+            b"jid",
+            "last_stream_id_received",
+            b"last_stream_id_received",
+            "server_timestamp",
+            b"server_timestamp",
+            "setting",
+            b"setting",
+            "stream_id",
+            b"stream_id",
+        ],
+    ) -> None: ...
 
 global___LoginResponse = LoginResponse
 
@@ -418,8 +675,12 @@ class StreamErrorStanza(google.protobuf.message.Message):
         type: builtins.str | None = ...,
         text: builtins.str | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["text", b"text", "type", b"type"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["text", b"text", "type", b"type"]) -> None: ...
+    def HasField(
+        self, field_name: typing_extensions.Literal["text", b"text", "type", b"type"]
+    ) -> builtins.bool: ...
+    def ClearField(
+        self, field_name: typing_extensions.Literal["text", b"text", "type", b"type"]
+    ) -> None: ...
 
 global___StreamErrorStanza = StreamErrorStanza
 
@@ -454,8 +715,12 @@ class Extension(google.protobuf.message.Message):
         id: builtins.int | None = ...,
         data: builtins.bytes | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["data", b"data", "id", b"id"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["data", b"data", "id", b"id"]) -> None: ...
+    def HasField(
+        self, field_name: typing_extensions.Literal["data", b"data", "id", b"id"]
+    ) -> builtins.bool: ...
+    def ClearField(
+        self, field_name: typing_extensions.Literal["data", b"data", "id", b"id"]
+    ) -> None: ...
 
 global___Extension = Extension
 
@@ -473,7 +738,12 @@ class IqStanza(google.protobuf.message.Message):
         ValueType = typing.NewType("ValueType", builtins.int)
         V: typing_extensions.TypeAlias = ValueType
 
-    class _IqTypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[IqStanza._IqType.ValueType], builtins.type):
+    class _IqTypeEnumTypeWrapper(
+        google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[
+            IqStanza._IqType.ValueType
+        ],
+        builtins.type,
+    ):
         DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
         GET: IqStanza._IqType.ValueType  # 0
         SET: IqStanza._IqType.ValueType  # 1
@@ -527,8 +797,64 @@ class IqStanza(google.protobuf.message.Message):
         account_id: builtins.int | None = ...,
         status: builtins.int | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["account_id", b"account_id", "error", b"error", "extension", b"extension", "from", b"from", "id", b"id", "last_stream_id_received", b"last_stream_id_received", "persistent_id", b"persistent_id", "rmq_id", b"rmq_id", "status", b"status", "stream_id", b"stream_id", "to", b"to", "type", b"type"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["account_id", b"account_id", "error", b"error", "extension", b"extension", "from", b"from", "id", b"id", "last_stream_id_received", b"last_stream_id_received", "persistent_id", b"persistent_id", "rmq_id", b"rmq_id", "status", b"status", "stream_id", b"stream_id", "to", b"to", "type", b"type"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions.Literal[
+            "account_id",
+            b"account_id",
+            "error",
+            b"error",
+            "extension",
+            b"extension",
+            "from",
+            b"from",
+            "id",
+            b"id",
+            "last_stream_id_received",
+            b"last_stream_id_received",
+            "persistent_id",
+            b"persistent_id",
+            "rmq_id",
+            b"rmq_id",
+            "status",
+            b"status",
+            "stream_id",
+            b"stream_id",
+            "to",
+            b"to",
+            "type",
+            b"type",
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions.Literal[
+            "account_id",
+            b"account_id",
+            "error",
+            b"error",
+            "extension",
+            b"extension",
+            "from",
+            b"from",
+            "id",
+            b"id",
+            "last_stream_id_received",
+            b"last_stream_id_received",
+            "persistent_id",
+            b"persistent_id",
+            "rmq_id",
+            b"rmq_id",
+            "status",
+            b"status",
+            "stream_id",
+            b"stream_id",
+            "to",
+            b"to",
+            "type",
+            b"type",
+        ],
+    ) -> None: ...
 
 global___IqStanza = IqStanza
 
@@ -546,8 +872,12 @@ class AppData(google.protobuf.message.Message):
         key: builtins.str | None = ...,
         value: builtins.str | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["key", b"key", "value", b"value"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["key", b"key", "value", b"value"]) -> None: ...
+    def HasField(
+        self, field_name: typing_extensions.Literal["key", b"key", "value", b"value"]
+    ) -> builtins.bool: ...
+    def ClearField(
+        self, field_name: typing_extensions.Literal["key", b"key", "value", b"value"]
+    ) -> None: ...
 
 global___AppData = AppData
 
@@ -588,7 +918,11 @@ class DataMessageStanza(google.protobuf.message.Message):
     token: builtins.str
     """The collapsed key, DMP.3"""
     @property
-    def app_data(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___AppData]:
+    def app_data(
+        self,
+    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[
+        global___AppData
+    ]:
         """User data + GOOGLE. prefixed special entries, DMP.4"""
     from_trusted_server: builtins.bool
     """Not used."""
@@ -657,8 +991,86 @@ class DataMessageStanza(google.protobuf.message.Message):
         raw_data: builtins.bytes | None = ...,
         immediate_ack: builtins.bool | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["category", b"category", "device_user_id", b"device_user_id", "from", b"from", "from_trusted_server", b"from_trusted_server", "id", b"id", "immediate_ack", b"immediate_ack", "last_stream_id_received", b"last_stream_id_received", "persistent_id", b"persistent_id", "queued", b"queued", "raw_data", b"raw_data", "reg_id", b"reg_id", "sent", b"sent", "status", b"status", "stream_id", b"stream_id", "to", b"to", "token", b"token", "ttl", b"ttl"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["app_data", b"app_data", "category", b"category", "device_user_id", b"device_user_id", "from", b"from", "from_trusted_server", b"from_trusted_server", "id", b"id", "immediate_ack", b"immediate_ack", "last_stream_id_received", b"last_stream_id_received", "persistent_id", b"persistent_id", "queued", b"queued", "raw_data", b"raw_data", "reg_id", b"reg_id", "sent", b"sent", "status", b"status", "stream_id", b"stream_id", "to", b"to", "token", b"token", "ttl", b"ttl"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions.Literal[
+            "category",
+            b"category",
+            "device_user_id",
+            b"device_user_id",
+            "from",
+            b"from",
+            "from_trusted_server",
+            b"from_trusted_server",
+            "id",
+            b"id",
+            "immediate_ack",
+            b"immediate_ack",
+            "last_stream_id_received",
+            b"last_stream_id_received",
+            "persistent_id",
+            b"persistent_id",
+            "queued",
+            b"queued",
+            "raw_data",
+            b"raw_data",
+            "reg_id",
+            b"reg_id",
+            "sent",
+            b"sent",
+            "status",
+            b"status",
+            "stream_id",
+            b"stream_id",
+            "to",
+            b"to",
+            "token",
+            b"token",
+            "ttl",
+            b"ttl",
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions.Literal[
+            "app_data",
+            b"app_data",
+            "category",
+            b"category",
+            "device_user_id",
+            b"device_user_id",
+            "from",
+            b"from",
+            "from_trusted_server",
+            b"from_trusted_server",
+            "id",
+            b"id",
+            "immediate_ack",
+            b"immediate_ack",
+            "last_stream_id_received",
+            b"last_stream_id_received",
+            "persistent_id",
+            b"persistent_id",
+            "queued",
+            b"queued",
+            "raw_data",
+            b"raw_data",
+            "reg_id",
+            b"reg_id",
+            "sent",
+            b"sent",
+            "status",
+            b"status",
+            "stream_id",
+            b"stream_id",
+            "to",
+            b"to",
+            "token",
+            b"token",
+            "ttl",
+            b"ttl",
+        ],
+    ) -> None: ...
 
 global___DataMessageStanza = DataMessageStanza
 
@@ -689,12 +1101,18 @@ class SelectiveAck(google.protobuf.message.Message):
 
     ID_FIELD_NUMBER: builtins.int
     @property
-    def id(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]: ...
+    def id(
+        self,
+    ) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[
+        builtins.str
+    ]: ...
     def __init__(
         self,
         *,
         id: collections.abc.Iterable[builtins.str] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["id", b"id"]) -> None: ...
+    def ClearField(
+        self, field_name: typing_extensions.Literal["id", b"id"]
+    ) -> None: ...
 
 global___SelectiveAck = SelectiveAck

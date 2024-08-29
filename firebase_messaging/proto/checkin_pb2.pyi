@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 Request and reply to the "checkin server" devices poll every few hours.
 """
+
 from . import android_checkin_pb2
 import builtins
 import collections.abc
@@ -38,8 +39,12 @@ class GservicesSetting(google.protobuf.message.Message):
         name: builtins.bytes | None = ...,
         value: builtins.bytes | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["name", b"name", "value", b"value"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "value", b"value"]) -> None: ...
+    def HasField(
+        self, field_name: typing_extensions.Literal["name", b"name", "value", b"value"]
+    ) -> builtins.bool: ...
+    def ClearField(
+        self, field_name: typing_extensions.Literal["name", b"name", "value", b"value"]
+    ) -> None: ...
 
 global___GservicesSetting = GservicesSetting
 
@@ -81,13 +86,17 @@ class AndroidCheckinRequest(google.protobuf.message.Message):
     MEID, reported but not logged.
     """
     @property
-    def mac_addr(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
+    def mac_addr(
+        self,
+    ) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """MAC address (used by non-phone devices).  12 hexadecimal digits;
         no separators (eg "0016E6513AC2", not "00:16:E6:51:3A:C2").
         MAC address, reported but not logged.
         """
     @property
-    def mac_addr_type(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
+    def mac_addr_type(
+        self,
+    ) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """An array parallel to mac_addr, describing the type of interface.
         Currently accepted values: "wifi", "ethernet", "bluetooth".  If
         not present, "wifi" is assumed.
@@ -115,7 +124,9 @@ class AndroidCheckinRequest(google.protobuf.message.Message):
     market_checkin: builtins.str
     """Blob of data from the Market app to be passed to Market API server"""
     @property
-    def account_cookie(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
+    def account_cookie(
+        self,
+    ) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """SID cookies of any google accounts stored on the phone.  Not logged."""
     time_zone: builtins.str
     """Time zone.  Not currently logged."""
@@ -146,7 +157,9 @@ class AndroidCheckinRequest(google.protobuf.message.Message):
     version field that is effectively version 1.)
     """
     @property
-    def ota_cert(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
+    def ota_cert(
+        self,
+    ) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """OTA certs accepted by device (base-64 SHA-1 of cert files).  Not
         logged.
         """
@@ -199,8 +212,92 @@ class AndroidCheckinRequest(google.protobuf.message.Message):
         user_name: builtins.str | None = ...,
         user_serial_number: builtins.int | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["checkin", b"checkin", "desired_build", b"desired_build", "digest", b"digest", "esn", b"esn", "fragment", b"fragment", "id", b"id", "imei", b"imei", "locale", b"locale", "logging_id", b"logging_id", "market_checkin", b"market_checkin", "meid", b"meid", "security_token", b"security_token", "serial_number", b"serial_number", "time_zone", b"time_zone", "user_name", b"user_name", "user_serial_number", b"user_serial_number", "version", b"version"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["account_cookie", b"account_cookie", "checkin", b"checkin", "desired_build", b"desired_build", "digest", b"digest", "esn", b"esn", "fragment", b"fragment", "id", b"id", "imei", b"imei", "locale", b"locale", "logging_id", b"logging_id", "mac_addr", b"mac_addr", "mac_addr_type", b"mac_addr_type", "market_checkin", b"market_checkin", "meid", b"meid", "ota_cert", b"ota_cert", "security_token", b"security_token", "serial_number", b"serial_number", "time_zone", b"time_zone", "user_name", b"user_name", "user_serial_number", b"user_serial_number", "version", b"version"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions.Literal[
+            "checkin",
+            b"checkin",
+            "desired_build",
+            b"desired_build",
+            "digest",
+            b"digest",
+            "esn",
+            b"esn",
+            "fragment",
+            b"fragment",
+            "id",
+            b"id",
+            "imei",
+            b"imei",
+            "locale",
+            b"locale",
+            "logging_id",
+            b"logging_id",
+            "market_checkin",
+            b"market_checkin",
+            "meid",
+            b"meid",
+            "security_token",
+            b"security_token",
+            "serial_number",
+            b"serial_number",
+            "time_zone",
+            b"time_zone",
+            "user_name",
+            b"user_name",
+            "user_serial_number",
+            b"user_serial_number",
+            "version",
+            b"version",
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions.Literal[
+            "account_cookie",
+            b"account_cookie",
+            "checkin",
+            b"checkin",
+            "desired_build",
+            b"desired_build",
+            "digest",
+            b"digest",
+            "esn",
+            b"esn",
+            "fragment",
+            b"fragment",
+            "id",
+            b"id",
+            "imei",
+            b"imei",
+            "locale",
+            b"locale",
+            "logging_id",
+            b"logging_id",
+            "mac_addr",
+            b"mac_addr",
+            "mac_addr_type",
+            b"mac_addr_type",
+            "market_checkin",
+            b"market_checkin",
+            "meid",
+            b"meid",
+            "ota_cert",
+            b"ota_cert",
+            "security_token",
+            b"security_token",
+            "serial_number",
+            b"serial_number",
+            "time_zone",
+            b"time_zone",
+            "user_name",
+            b"user_name",
+            "user_serial_number",
+            b"user_serial_number",
+            "version",
+            b"version",
+        ],
+    ) -> None: ...
 
 global___AndroidCheckinRequest = AndroidCheckinRequest
 
@@ -244,9 +341,17 @@ class AndroidCheckinResponse(google.protobuf.message.Message):
     """
     settings_diff: builtins.bool
     @property
-    def delete_setting(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]: ...
+    def delete_setting(
+        self,
+    ) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[
+        builtins.str
+    ]: ...
     @property
-    def setting(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___GservicesSetting]: ...
+    def setting(
+        self,
+    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[
+        global___GservicesSetting
+    ]: ...
     market_ok: builtins.bool
     """If Market got the market_checkin data OK."""
     android_id: builtins.int
@@ -269,7 +374,51 @@ class AndroidCheckinResponse(google.protobuf.message.Message):
         security_token: builtins.int | None = ...,
         version_info: builtins.str | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["android_id", b"android_id", "digest", b"digest", "market_ok", b"market_ok", "security_token", b"security_token", "settings_diff", b"settings_diff", "stats_ok", b"stats_ok", "time_msec", b"time_msec", "version_info", b"version_info"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["android_id", b"android_id", "delete_setting", b"delete_setting", "digest", b"digest", "market_ok", b"market_ok", "security_token", b"security_token", "setting", b"setting", "settings_diff", b"settings_diff", "stats_ok", b"stats_ok", "time_msec", b"time_msec", "version_info", b"version_info"]) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions.Literal[
+            "android_id",
+            b"android_id",
+            "digest",
+            b"digest",
+            "market_ok",
+            b"market_ok",
+            "security_token",
+            b"security_token",
+            "settings_diff",
+            b"settings_diff",
+            "stats_ok",
+            b"stats_ok",
+            "time_msec",
+            b"time_msec",
+            "version_info",
+            b"version_info",
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions.Literal[
+            "android_id",
+            b"android_id",
+            "delete_setting",
+            b"delete_setting",
+            "digest",
+            b"digest",
+            "market_ok",
+            b"market_ok",
+            "security_token",
+            b"security_token",
+            "setting",
+            b"setting",
+            "settings_diff",
+            b"settings_diff",
+            "stats_ok",
+            b"stats_ok",
+            "time_msec",
+            b"time_msec",
+            "version_info",
+            b"version_info",
+        ],
+    ) -> None: ...
 
 global___AndroidCheckinResponse = AndroidCheckinResponse

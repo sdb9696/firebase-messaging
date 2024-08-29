@@ -11,7 +11,7 @@ from base64 import b64encode, urlsafe_b64encode
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ClientTimeout
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from google.protobuf.json_format import MessageToDict, MessageToJson
@@ -58,6 +58,8 @@ class FcmRegisterConfig:
 
 
 class FcmRegister:
+    CLIENT_TIMEOUT = ClientTimeout(total=3)
+
     def __init__(
         self,
         config: FcmRegisterConfig,
@@ -135,7 +137,7 @@ class FcmRegister:
                     url=GCM_CHECKIN_URL,
                     headers={"Content-Type": "application/x-protobuf"},
                     data=payload.SerializeToString(),
-                    timeout=2,
+                    timeout=self.CLIENT_TIMEOUT,
                 ) as resp:
                     if resp.status == 200:
                         acir = AndroidCheckinResponse()
@@ -216,7 +218,7 @@ class FcmRegister:
                     url=GCM_REGISTER_URL,
                     headers=headers,
                     data=body,
-                    timeout=2,
+                    timeout=self.CLIENT_TIMEOUT,
                 ) as resp:
                     response_text = await resp.text()
                 if "Error" in response_text:
@@ -291,7 +293,7 @@ class FcmRegister:
             url=url,
             headers=headers,
             data=json.dumps(payload),
-            timeout=2,
+            timeout=self.CLIENT_TIMEOUT,
         ) as resp:
             if resp.status == 200:
                 fcm_install = await resp.json()
@@ -338,7 +340,7 @@ class FcmRegister:
             url=url,
             headers=headers,
             data=json.dumps(payload),
-            timeout=5,
+            timeout=self.CLIENT_TIMEOUT,
         ) as resp:
             if resp.status == 200:
                 fcm_refresh = await resp.json()
@@ -412,7 +414,7 @@ class FcmRegister:
                     url=url,
                     headers=headers,
                     data=json.dumps(payload),
-                    # timeout=2,
+                    timeout=self.CLIENT_TIMEOUT,
                 ) as resp:
                     if resp.status == 200:
                         fcm = await resp.json()

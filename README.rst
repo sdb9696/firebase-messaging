@@ -75,8 +75,8 @@ Code originally based on typescript/node implementation by
 `Matthieu Lemoine <https://github.com/MatthieuLemoine/push-receiver>`_.
 See `this blog post <https://medium.com/@MatthieuLemoine/my-journey-to-bring-web-push-support-to-node-and-electron-ce70eea1c0b0>`_ for more details.
 
-Converted to python by 
+Converted to python by
 `lolisamurai <https://github.com/Francesco149/push_receiver>`_
 
-http decryption logic in decrypt.py by 
+http decryption logic in decrypt.py by
 `Martin Thomson <https://github.com/web-push-libs/encrypted-content-encoding>`_
