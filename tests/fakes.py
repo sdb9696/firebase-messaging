@@ -13,63 +13,36 @@ from firebase_messaging.proto.mcs_pb2 import LoginResponse
 
 class FakeMcsEndpoint:
     def __init__(self):
-        self.connection_mock = patch(
-            "asyncio.open_connection", side_effect=self.open_connection, autospec=True
-        )
-        self.connection_mock.start()
-
-        self.client_loop = None
-        self.init_loop = None
-        self.client_writer = None
-        self.client_reader = None
-        self.init_loop = asyncio.get_running_loop()
+        # self.connection_mock = patch(
+        #    "asyncio.open_connection", side_effect=self.open_connection, autospec=True
+        # )
+        # self.connection_mock.start()
+        self.client_writer = self.FakeWriter()
+        self.client_reader = self.FakeReader()
 
     def close(self):
-        self.connection_mock.stop()
+        # self.connection_mock.stop()
+        pass
 
     async def open_connection(self, *_, **__):
         # Queues should be created on the loop that will be accessing them
         self.client_writer = self.FakeWriter()
         self.client_reader = self.FakeReader()
-        self.client_loop = asyncio.get_running_loop()
         return self.client_reader, self.client_writer
 
-    async def wait_for_connection(self, timeout=10):
-        async with asyncio_timeout(timeout):
-            while not self.client_loop:
-                await asyncio.sleep(0.1)
-
     async def put_message(self, message):
-        await self.wait_for_connection()
-        if self.init_loop != self.client_loop:
-            asyncio.run_coroutine_threadsafe(
-                self.client_reader.put_message(message), self.client_loop
-            )
-        else:
-            await self.client_reader.put_message(message)
+        await self.client_reader.put_message(message)
 
     async def put_error(self, error):
-        await self.wait_for_connection()
-        if self.init_loop != self.client_loop:
-            asyncio.run_coroutine_threadsafe(
-                self.client_reader.put_error(error), self.client_loop
-            )
-        else:
-            await self.client_reader.put_error(error)
+        await self.client_reader.put_error(error)
 
     async def get_message(self):
-        await self.wait_for_connection()
-        if self.init_loop != self.client_loop:
-            fut = asyncio.run_coroutine_threadsafe(
-                self.client_writer.get_message(), self.client_loop
-            )
-            return fut.result()
-        else:
-            return await self.client_writer.get_message()
+        return await self.client_writer.get_message()
 
     class FakeReader:
         def __init__(self):
             self.queue = asyncio.Queue()
+            self.lock = asyncio.Lock()
 
         async def readexactly(self, size):
             if size == 0:
@@ -85,17 +58,20 @@ class FakeMcsEndpoint:
         async def put_message(self, message):
             include_version = isinstance(message, LoginResponse)
             packet = FcmPushClient._make_packet(message, include_version)
-            for p in packet:
-                b = bytes([p])
-                await self.queue.put(b)
+            async with self.lock:
+                for p in packet:
+                    b = bytes([p])
+                    await self.queue.put(b)
 
         async def put_error(self, error):
-            await self.queue.put(error)
+            async with self.lock:
+                await self.queue.put(error)
 
     class FakeWriter:
         def __init__(self):
             self.queue = asyncio.Queue()
             self.buf = ""
+            self.lock = asyncio.Lock()
 
         def write(self, buffer):
             for i in buffer:
@@ -112,10 +88,11 @@ class FakeMcsEndpoint:
             pass
 
         async def get_bytes(self, size):
-            val = b""
-            for _ in range(size):
-                val += await self.queue.get()
-            return val
+            async with self.lock:
+                val = b""
+                for _ in range(size):
+                    val += await self.queue.get()
+                return val
 
         async def get_message(self, timeout=2):
             async with asyncio_timeout(timeout):
