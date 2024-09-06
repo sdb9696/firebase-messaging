@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.1](https://github.com/sdb9696/firebase-messaging/tree/0.4.1) (2024-09-06)
+
+[Full Changelog](https://github.com/sdb9696/firebase-messaging/compare/0.4.0...0.4.1)
+
+**Release highlights:**
+
+Migration to uv for project/package management
+
+**Project maintenance:**
+
+- Migrate from poetry to uv and enable testpypi publishing [\#9](https://github.com/sdb9696/firebase-messaging/pull/9) (@sdb9696)
+
 ## [0.4.0](https://github.com/sdb9696/firebase-messaging/tree/0.4.0) (2024-08-29)
 
 [Full Changelog](https://github.com/sdb9696/firebase-messaging/compare/0.3.0...0.4.0)
