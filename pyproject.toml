@@ -1,6 +1,6 @@
 [project]
 name = "firebase-messaging"
-version = "0.4.0"
+version = "0.4.1"
 description = "FCM/GCM push notification client"
 authors = [{ name = "sdb9696", email = "sdb9696@users.noreply.github.com" }]
 license =  { text="MIT" }
