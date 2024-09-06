@@ -2,7 +2,7 @@ name: Publish Python distribution to PyPI and TestPyPI
 
 on:
   push:
-    branches: ["main", "feat/poetry_to_uv"]
+    branches: ["main"]
     tags:
       - '*'
 env:
@@ -53,8 +53,8 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
-    #- name: Publish distribution to PyPI
-    #  uses: pypa/gh-action-pypi-publish@release/v1
+    - name: Publish distribution to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
 
   github-release:
     name: >-
@@ -86,7 +86,7 @@ jobs:
       run: |
         gh repo clone '${{ github.repository }}'
         cd ${{ github.event.repository.name }}
-        gh release create '${{ github.ref_name }}' --draft --verify-tag --notes-from-tag --title '${{ github.ref_name }}' ${{ contains(github.ref_name, 'dev') && '--prerelease --latest=false' || '--latest=true' }}
+        gh release create '${{ github.ref_name }}' --verify-tag --notes-from-tag --title '${{ github.ref_name }}' ${{ contains(github.ref_name, 'dev') && '--prerelease --latest=false' || '--latest=true' }}
         cd ..
     - name: Upload artifact signatures to GitHub Release
       env:
