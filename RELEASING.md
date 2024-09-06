@@ -31,21 +31,21 @@ git checkout -b release/$NEW_RELEASE
 ### Update the version number
 
 ```bash
-poetry version $NEW_RELEASE
+sed -i "0,/version = /{s/version = .*/version = \"${NEW_RELEASE}\"/}" pyproject.toml
 ```
 
 ### Update dependencies
 
 ```bash
-poetry install --all-extras --sync
-poetry update
+uv sync --all-extras
+uv lock --upgrade
 ```
 
 ### Run pre-commit and tests
 
 ```bash
-pre-commit run --all-files
-pytest
+uv run pre-commit run --all-files
+uv run pytest
 ```
 
 ### Create release summary (skip for dev releases)
@@ -146,23 +146,6 @@ git tag --annotate $NEW_RELEASE -m "$RELEASE_NOTES"  # to create a signed tag re
 git push origin $NEW_RELEASE
 ```
 
-### Create release
+### Approve the release workflow
 
-N.B. the `--notes-from-tag` option requires gh cli version >= 2.35.0
-
-#### Pre-releases
-
-```bash
-gh release create "$NEW_RELEASE" --verify-tag --notes-from-tag --title "$NEW_RELEASE" --draft --latest=false --prerelease
-
-```
-
-#### Production release
-
-```bash
-gh release create "$NEW_RELEASE" --verify-tag --notes-from-tag --title "$NEW_RELEASE" --draft --latest=true
-```
-
-### Manually publish the release
-
-Go to the linked URL, verify the contents, and click "release" button to trigger the release CI.
+This will automatically deploy to pypi
