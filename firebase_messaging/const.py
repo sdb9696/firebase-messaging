@@ -1,16 +1,5 @@
 """Constants module."""
 
-from .proto.mcs_pb2 import (  # pylint: disable=no-name-in-module
-    Close,
-    DataMessageStanza,
-    HeartbeatAck,
-    HeartbeatPing,
-    IqStanza,
-    LoginRequest,
-    LoginResponse,
-    StreamErrorStanza,
-)
-
 GCM_REGISTER_URL = "https://android.clients.google.com/c2dm/register3"
 GCM_CHECKIN_URL = "https://android.clients.google.com/checkin"
 GCM_SERVER_KEY_BIN = (
@@ -41,23 +30,3 @@ MCS_HOST = "mtalk.google.com"
 MCS_PORT = 5228
 MCS_SELECTIVE_ACK_ID = 12
 MCS_STREAM_ACK_ID = 13
-
-# MCS Message Types and Tags
-MCS_MESSAGE_TAG = {
-    HeartbeatPing: 0,
-    HeartbeatAck: 1,
-    LoginRequest: 2,
-    LoginResponse: 3,
-    Close: 4,
-    "MessageStanza": 5,
-    "PresenceStanza": 6,
-    IqStanza: 7,
-    DataMessageStanza: 8,
-    "BatchPresenceStanza": 9,
-    StreamErrorStanza: 10,
-    "HttpRequest": 11,
-    "HttpResponse": 12,
-    "BindAccountRequest": 13,
-    "BindAccountResponse": 14,
-    "TalkMetadata": 15,
-}

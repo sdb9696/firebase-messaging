@@ -23,27 +23,49 @@ from http_ece import decrypt as http_decrypt  # type: ignore[import-untyped]
 
 from .const import (
     MCS_HOST,
-    MCS_MESSAGE_TAG,
     MCS_PORT,
     MCS_SELECTIVE_ACK_ID,
     MCS_VERSION,
 )
-from .fcmregister import FcmRegister, FcmRegisterConfig
-from .proto.mcs_pb2 import (  # pylint: disable=no-name-in-module
-    Close,
-    DataMessageStanza,
-    HeartbeatAck,
-    HeartbeatPing,
-    IqStanza,
-    LoginRequest,
-    LoginResponse,
-    SelectiveAck,
-)
+from .fcmregister import FcmRegister, FcmRegisterConfig, catch_protobuf_warnings
+
+with catch_protobuf_warnings():
+    from .proto.mcs_pb2 import (  # pylint: disable=no-name-in-module
+        Close,
+        DataMessageStanza,
+        HeartbeatAck,
+        HeartbeatPing,
+        IqStanza,
+        LoginRequest,
+        LoginResponse,
+        SelectiveAck,
+        StreamErrorStanza,
+    )
 
 _logger = logging.getLogger(__name__)
 
 OnNotificationCallable = Callable[[dict[str, Any], str, Any], None]
 CredentialsUpdatedCallable = Callable[[dict[str, Any]], None]
+
+# MCS Message Types and Tags
+MCS_MESSAGE_TAG = {
+    HeartbeatPing: 0,
+    HeartbeatAck: 1,
+    LoginRequest: 2,
+    LoginResponse: 3,
+    Close: 4,
+    "MessageStanza": 5,
+    "PresenceStanza": 6,
+    IqStanza: 7,
+    DataMessageStanza: 8,
+    "BatchPresenceStanza": 9,
+    StreamErrorStanza: 10,
+    "HttpRequest": 11,
+    "HttpResponse": 12,
+    "BindAccountRequest": 13,
+    "BindAccountResponse": 14,
+    "TalkMetadata": 15,
+}
 
 
 class ErrorType(Enum):
