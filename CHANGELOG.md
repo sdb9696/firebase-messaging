@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.3](https://github.com/sdb9696/firebase-messaging/tree/0.4.3) (2024-09-25)
+
+[Full Changelog](https://github.com/sdb9696/firebase-messaging/compare/0.4.2...0.4.3)
+
+**Release highlights:**
+
+- Suppress unnecessary warnings from dependant library.
+
+**Fixed bugs:**
+
+- Catch excessive protobuf warnings [\#16](https://github.com/sdb9696/firebase-messaging/pull/16) (@sdb9696)
+
 ## [0.4.2](https://github.com/sdb9696/firebase-messaging/tree/0.4.2) (2024-09-25)
 
 [Full Changelog](https://github.com/sdb9696/firebase-messaging/compare/0.4.1...0.4.2)
