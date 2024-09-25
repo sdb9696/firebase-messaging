@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.2](https://github.com/sdb9696/firebase-messaging/tree/0.4.2) (2024-09-25)
+
+[Full Changelog](https://github.com/sdb9696/firebase-messaging/compare/0.4.1...0.4.2)
+
+**Release highlights:**
+
+Upgrades protobuf dependency to 5.28.
+
+**Project maintenance:**
+
+- Update protobuf to 5.28 [\#12](https://github.com/sdb9696/firebase-messaging/pull/12) (@sdb9696)
+
 ## [0.4.1](https://github.com/sdb9696/firebase-messaging/tree/0.4.1) (2024-09-06)
 
 [Full Changelog](https://github.com/sdb9696/firebase-messaging/compare/0.4.0...0.4.1)
