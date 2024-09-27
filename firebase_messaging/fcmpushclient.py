@@ -27,20 +27,18 @@ from .const import (
     MCS_SELECTIVE_ACK_ID,
     MCS_VERSION,
 )
-from .fcmregister import FcmRegister, FcmRegisterConfig, catch_protobuf_warnings
-
-with catch_protobuf_warnings():
-    from .proto.mcs_pb2 import (  # pylint: disable=no-name-in-module
-        Close,
-        DataMessageStanza,
-        HeartbeatAck,
-        HeartbeatPing,
-        IqStanza,
-        LoginRequest,
-        LoginResponse,
-        SelectiveAck,
-        StreamErrorStanza,
-    )
+from .fcmregister import FcmRegister, FcmRegisterConfig
+from .proto.mcs_pb2 import (  # pylint: disable=no-name-in-module
+    Close,
+    DataMessageStanza,
+    HeartbeatAck,
+    HeartbeatPing,
+    IqStanza,
+    LoginRequest,
+    LoginResponse,
+    SelectiveAck,
+    StreamErrorStanza,
+)
 
 _logger = logging.getLogger(__name__)
 

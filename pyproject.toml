@@ -7,7 +7,7 @@ license =  { text="MIT" }
 readme = "README.rst"
 requires-python = ">=3.9.0"
 dependencies = [
-    "protobuf>=5.28.0,<7",
+    "protobuf>=4.24.3,<6",
     "http-ece~=1.1.0",
     "cryptography>=2.5",
     "aiohttp>=3.9.3",
@@ -65,9 +65,9 @@ dev-dependencies = [
     "async-timeout>=3.0.0",
     "pytest-socket~=0.7.0",
     "aioresponses~=0.7.6",
+    "types-protobuf>=4.24",
     "mypy~=1.0",
-    "ruff>=0.6.7",
-    "types-protobuf>=5.28.0",
+    "ruff>=0.6.8",
 ]
 
 [tool.pytest.ini_options]
