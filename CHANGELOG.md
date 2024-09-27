@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.4](https://github.com/sdb9696/firebase-messaging/tree/0.4.4) (2024-09-27)
+
+[Full Changelog](https://github.com/sdb9696/firebase-messaging/compare/0.4.3...0.4.4)
+
+**Release highlights:**
+
+- Revert changes to compiled protobuf files so they are back to 4.24 to avoid ongoing release management headaches.
+
+**Merged pull requests:**
+
+- Revert protobuf compilation changes [\#19](https://github.com/sdb9696/firebase-messaging/pull/19) (@sdb9696)
+
 ## [0.4.3](https://github.com/sdb9696/firebase-messaging/tree/0.4.3) (2024-09-25)
 
 [Full Changelog](https://github.com/sdb9696/firebase-messaging/compare/0.4.2...0.4.3)
