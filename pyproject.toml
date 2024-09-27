@@ -7,7 +7,7 @@ license =  { text="MIT" }
 readme = "README.rst"
 requires-python = ">=3.9.0"
 dependencies = [
-    "protobuf>=4.24.3,<5",
+    "protobuf>=4.24.3,<6",
     "http-ece~=1.1.0",
     "cryptography>=2.5",
     "aiohttp>=3.9.3",
@@ -29,6 +29,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules"
 ]
 
@@ -62,10 +63,9 @@ dev-dependencies = [
     "pytest-asyncio",
     "pytest-cov",
     "async-timeout>=3.0.0",
-    "mypy-protobuf~=3.5.0",
     "pytest-socket~=0.7.0",
     "aioresponses~=0.7.6",
-    "types-protobuf~=4.0",
+    "types-protobuf>=4.24",
     "mypy~=1.0",
 ]
 
@@ -122,12 +122,19 @@ convention = "pep257"
 ]
 
 [tool.mypy]
-exclude = [
-    'tests/.*',  # TOML literal string (single-quotes, no escaping necessary)
-    'docs/.*',
-    'firebase_messaging/proto/.*'
-]
+# exclude pattern inside triple quotes should be synced to .pre-commit-config.yaml
+exclude = '''(?x)(
+          ^docs/.*|
+          ^tests/.*|
+          ^firebase_messaging/proto/.*py$
+)'''
 disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "firebase_messaging.proto.*"
+]
+disallow_untyped_defs = false
 
 [tool.doc8]
 paths = ["docs"]

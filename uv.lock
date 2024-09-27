@@ -498,7 +498,6 @@ dev = [
     { name = "aioresponses" },
     { name = "async-timeout" },
     { name = "mypy" },
-    { name = "mypy-protobuf" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -514,7 +513,7 @@ requires-dist = [
     { name = "cryptography", specifier = ">=2.5" },
     { name = "http-ece", specifier = "~=1.1.0" },
     { name = "myst-parser", marker = "extra == 'docs'" },
-    { name = "protobuf", specifier = ">=4.24.3,<5" },
+    { name = "protobuf", specifier = ">=4.24.3,<6" },
     { name = "sphinx", marker = "extra == 'docs'", specifier = "==7.1.2" },
     { name = "sphinx-autodoc-typehints", marker = "extra == 'docs'", specifier = "~=1.24" },
     { name = "sphinx-rtd-theme", marker = "extra == 'docs'", specifier = "~=1.3" },
@@ -525,14 +524,13 @@ dev = [
     { name = "aioresponses", specifier = "~=0.7.6" },
     { name = "async-timeout", specifier = ">=3.0.0" },
     { name = "mypy", specifier = "~=1.0" },
-    { name = "mypy-protobuf", specifier = "~=3.5.0" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "pytest-mock" },
     { name = "pytest-socket", specifier = "~=0.7.0" },
-    { name = "types-protobuf", specifier = "~=4.0" },
+    { name = "types-protobuf", specifier = ">=4.24" },
 ]
 
 [[package]]
@@ -864,19 +862,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/98/a4/1ab47638b92648243faf97a5aeb6ea83059cc3624972ab6b8d2316078d3f/mypy_extensions-1.0.0.tar.gz", hash = "sha256:75dbf8955dc00442a438fc4d0666508a9a97b6bd41aa2f0ffe9d2f2725af0782", size = 4433 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2a/e2/5d3f6ada4297caebe1a2add3b126fe800c96f56dbe5d1988a2cbe0b267aa/mypy_extensions-1.0.0-py3-none-any.whl", hash = "sha256:4392f6c0eb8a5668a69e23d168ffa70f0be9ccfd32b5cc2d26a34ae5b844552d", size = 4695 },
-]
-
-[[package]]
-name = "mypy-protobuf"
-version = "3.5.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "protobuf" },
-    { name = "types-protobuf" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/61/10/585b0a5494c8bc6e4fe33a92eadc4f750ab192ecbdfd1d9f7fc4545c2985/mypy-protobuf-3.5.0.tar.gz", hash = "sha256:21f270da0a9792a9dac76b0df463c027e561664ab6973c59be4e4d064dfe67dc", size = 24418 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b3/b8/10a141d38da112507c633eee498aa9939df34dfb417c93f0a246c4931eb7/mypy_protobuf-3.5.0-py3-none-any.whl", hash = "sha256:0d0548c6b9a6faf14ce1a9ce2831c403a5c1f2a9363e85b1e2c51d5d57aa8393", size = 16435 },
 ]
 
 [[package]]
