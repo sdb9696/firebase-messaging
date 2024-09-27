@@ -40,11 +40,9 @@ repos:
     language: system
     types_or: [python, pyi]
     require_serial: true
-    # exclude required because --all-files passes py and pyi
-    # should match pattern in pyproject.toml
-    exclude: |
-      (?x)(
-          ^docs/.*|
-          ^tests/.*|
-          ^firebase_messaging/proto/.*py$
-      )
+    exclude: |  # exclude required because --all-files passes py and pyi
+      (?x)^(
+          docs/.*|
+          tests/.*|
+          firebase_messaging/proto/.*py$
+      )$

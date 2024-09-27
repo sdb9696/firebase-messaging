@@ -5,46 +5,6 @@
 * [gitchub_changelog_generator](https://github.com/github-changelog-generator)
 * [github access token](https://github.com/github-changelog-generator/github-changelog-generator#github-token)
 
-## Updating protobuf version
-
-Skip this part under normal circumstances.
-Only required if protobuf minimum depencey is updated.
-
-### Update protobuf version
-
-```bash
-export PROTOBUF_VERSION=x.x.0
-uv add "protobuf>$PROTOBUF_VERSION"
-uv add --dev "types-protobuf>$PROTOBUF_VERSION"
-```
-
-### Download and unzip latest protoc compiler
-
-Replace download url with correct version/platform
-
-```bash
-cd /var/tmp
-wget https://github.com/protocolbuffers/protobuf/releases/download/v28.0/protoc-28.0-linux-x86_64.zip
-unzip protoc-28.0-linux-x86_64.zip
-sudo cp bin/protoc /usr/local/bin/
-cd <project-dir>
-protoc --version # check version as expected
-```
-
-### Update generated python files
-
-```bash
-export PROTO_DIR="firebase_messaging/proto"
-protoc --proto_path=$PROTO_DIR --python_out=$PROTO_DIR $PROTO_DIR/android_checkin.proto $PROTO_DIR/checkin.proto $PROTO_DIR/mcs.proto
-protoc --proto_path=$PROTO_DIR --pyi_out=$PROTO_DIR $PROTO_DIR/android_checkin.proto $PROTO_DIR/checkin.proto $PROTO_DIR/mcs.proto
-```
-
-### Fix relative import
-
-`protoc` doesn't do relative imports https://github.com/protocolbuffers/protobuf/issues/1491
-
-In `checkin_pb2.py` and `checkin_pb2.pyi` put `from . ` in front of `import android_checkin_pb2 ...`
-
 ## Export changelog token
 
 ```bash
