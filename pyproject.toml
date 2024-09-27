@@ -67,6 +67,7 @@ dev-dependencies = [
     "aioresponses~=0.7.6",
     "types-protobuf>=4.24",
     "mypy~=1.0",
+    "ruff>=0.6.8",
 ]
 
 [tool.pytest.ini_options]
