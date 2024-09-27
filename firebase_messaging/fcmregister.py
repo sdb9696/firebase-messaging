@@ -7,10 +7,7 @@ import os
 import secrets
 import time
 import uuid
-import warnings
 from base64 import b64encode, urlsafe_b64encode
-from collections.abc import Iterator
-from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any, Callable
 
@@ -29,40 +26,15 @@ from .const import (
     GCM_SERVER_KEY_B64,
     SDK_VERSION,
 )
-
-
-@contextmanager
-def catch_protobuf_warnings() -> Iterator[None]:
-    """Catch excessive protobuf warnings due to incorrect greater than check.
-
-    See https://github.com/protocolbuffers/protobuf/issues/18096
-    and https://protobuf.dev/support/cross-version-runtime-guarantee/#minor.
-    """
-    match = (
-        r"^Protobuf gencode version \d+\.\d+\.\d+ is older than the runtime version"
-        r" \d+\.\d+\.\d+ at .*\.proto\. Please avoid checked-in Protobuf gencode "
-        r"that can be obsolete\.$"
-    )
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            "ignore",
-            category=UserWarning,
-            module="google.protobuf.runtime_version",
-            message=match,
-        )
-        yield
-
-
-with catch_protobuf_warnings():
-    from .proto.android_checkin_pb2 import (
-        DEVICE_CHROME_BROWSER,
-        AndroidCheckinProto,
-        ChromeBuildProto,
-    )
-    from .proto.checkin_pb2 import (
-        AndroidCheckinRequest,
-        AndroidCheckinResponse,
-    )
+from .proto.android_checkin_pb2 import (
+    DEVICE_CHROME_BROWSER,
+    AndroidCheckinProto,
+    ChromeBuildProto,
+)
+from .proto.checkin_pb2 import (
+    AndroidCheckinRequest,
+    AndroidCheckinResponse,
+)
 
 _logger = logging.getLogger(__name__)
 
