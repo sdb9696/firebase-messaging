@@ -7,7 +7,7 @@ on:
     branches: ["main"]
 
 env:
-  UV_VERSION: 0.4.5
+  UV_VERSION: 0.4.17
   PACKAGE_NAME: firebase_messaging
 
 jobs:
