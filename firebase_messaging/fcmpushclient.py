@@ -97,7 +97,7 @@ class FcmPushClientConfig:  # pylint:disable=too-many-instance-attributes
 
     send_selective_acknowledgements: bool = True
     """True to send selective acknowledgements for each message received.
-        Currently if false the client does not send any acknowlegements."""
+        Currently if false the client does not send any acknowledgements."""
 
     connection_retry_count: int = 5
     """Number of times to retry the connection before giving up."""
@@ -589,7 +589,7 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
                 if self._try_increment_error_count(ErrorType.LOGIN):
                     await self._reset()
             else:
-                _logger.info("Succesfully logged in to MCS endpoint")
+                _logger.info("Successfully logged in to MCS endpoint")
                 self._reset_error_count(ErrorType.LOGIN)
                 self.run_state = FcmPushClientRunState.STARTED
                 self.persistent_ids = []
@@ -608,7 +608,7 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
             pass
         else:
             self._log_warn_with_limit("Unexpected message type %s.", type(msg).__name__)
-        # Reset error count if a read has been succesful
+        # Reset error count if a read has been successful
         self._reset_error_count(ErrorType.READ)
         self._reset_error_count(ErrorType.CONNECTION)
 

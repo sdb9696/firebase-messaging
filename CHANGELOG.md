@@ -18,7 +18,7 @@
 
 **Release highlights:**
 
-- Suppress unnecessary warnings from dependant library.
+- Suppress unnecessary warnings from dependent library.
 
 **Fixed bugs:**
 

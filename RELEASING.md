@@ -104,7 +104,7 @@ Warning: PR 111 merge commit was not found in the release branch or tagged git h
 
 ```bash
 export RELEASE_NOTES=$(grep -Poz '(?<=\# Changelog\n\n)(.|\n)+?(?=\#\#)' CHANGELOG.md | tr '\0' '\n' )
-echo "$RELEASE_NOTES"  # Check the output and copy paste if neccessary
+echo "$RELEASE_NOTES"  # Check the output and copy paste if necessary
 ```
 
 ### Commit and push the changed files
