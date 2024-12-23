@@ -34,7 +34,7 @@ async def test_login(logged_in_push_client, fake_mcs_endpoint, mocker, caplog):
     assert (
         len([record for record in caplog.records if record.levelname == "ERROR"]) == 0
     )
-    assert "Succesfully logged in to MCS endpoint" in [
+    assert "Successfully logged in to MCS endpoint" in [
         record.message for record in caplog.records if record.levelname == "INFO"
     ]
 
