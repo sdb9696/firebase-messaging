@@ -439,14 +439,20 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         decrypted = self._decrypt_raw_data(
             self.credentials, crypto_key, salt, msg.raw_data
         )
+        decrypted_json = None
         with contextlib_suppress(json.JSONDecodeError, ValueError):
             decrypted_json = json.loads(decrypted.decode("utf-8"))
 
+        if not decrypted_json:
+            self._log_warn_with_limit(
+                "Failed to decrypt data for message %s", msg.persistent_id
+            )
+
         ret_val = decrypted_json if decrypted_json else decrypted
-        self._log_verbose(
-            "Decrypted data for message %s is: %s", msg.persistent_id, ret_val
-        )
+        self._log_verbose("Data for message %s is: %s", msg.persistent_id, ret_val)
         try:
+            if not isinstance(ret_val, dict):
+                ret_val = {"message": ret_val}
             self.callback(ret_val, msg.persistent_id, self.callback_context)
             self._reset_error_count(ErrorType.NOTIFY)
         except Exception:

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.5](https://github.com/sdb9696/firebase-messaging/tree/0.4.5) (2025-05-10)
+
+[Full Changelog](https://github.com/sdb9696/firebase-messaging/compare/0.4.4...0.4.5)
+
+**Release highlights:**
+
+- Upgrade protobuf dependency to 6.30.2
+
+**Documentation updates:**
+
+- Fix title of the documentation [\#25](https://github.com/sdb9696/firebase-messaging/pull/25) (@cpina)
+
+**Project maintenance:**
+
+- Upgrade protobuf dependency to 6.30.2 [\#27](https://github.com/sdb9696/firebase-messaging/pull/27) (@sdb9696)
+- Fix typos [\#24](https://github.com/sdb9696/firebase-messaging/pull/24) (@cpina)
+- Migrate workflows to setup-uv github action [\#22](https://github.com/sdb9696/firebase-messaging/pull/22) (@sdb9696)
+
 ## [0.4.4](https://github.com/sdb9696/firebase-messaging/tree/0.4.4) (2024-09-27)
 
 [Full Changelog](https://github.com/sdb9696/firebase-messaging/compare/0.4.3...0.4.4)
@@ -8,7 +26,7 @@
 
 - Revert changes to compiled protobuf files so they are back to 4.24 to avoid ongoing release management headaches.
 
-**Merged pull requests:**
+**Breaking change pull requests:**
 
 - Revert protobuf compilation changes [\#19](https://github.com/sdb9696/firebase-messaging/pull/19) (@sdb9696)
 
