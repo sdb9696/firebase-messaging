@@ -7,7 +7,7 @@ license =  { text="MIT" }
 readme = "README.rst"
 requires-python = ">=3.9.0"
 dependencies = [
-    "protobuf>=4.24.3,<6",
+    "protobuf>=6.30.2,<8",
     "http-ece~=1.1.0",
     "cryptography>=2.5",
     "aiohttp>=3.9.3",
@@ -65,7 +65,7 @@ dev-dependencies = [
     "async-timeout>=3.0.0",
     "pytest-socket~=0.7.0",
     "aioresponses~=0.7.6",
-    "types-protobuf>=4.24",
+    "types-protobuf>=6.30.2,<8",
     "mypy~=1.0",
     "ruff>=0.6.8",
 ]

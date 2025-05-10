@@ -159,9 +159,12 @@ Only required if protobuf minimum dependency is updated.
 ### Update protobuf version
 
 ```bash
-export PROTOBUF_VERSION=x.x.0
-uv add "protobuf>$PROTOBUF_VERSION"
-uv add --dev "types-protobuf>$PROTOBUF_VERSION"
+export PROTOBUF_VERSION=x.x.x
+IFS='.' read -r PROTOBUF_MAJOR PROTOBUF_MINOR PROTOBUF_PATCH <<< "$PROTOBUF_VERSION"
+PROTOBUF_NEXT="$((PROTOBUF_MAJOR + 2))"
+PROTOBUF_CONSTRAINT=">=$PROTOBUF_VERSION,<$PROTOBUF_NEXT"
+uv add "protobuf$PROTOBUF_CONSTRAINT"
+uv add --dev "types-protobuf$PROTOBUF_CONSTRAINT"
 ```
 
 ### Download and unzip latest protoc compiler
@@ -169,20 +172,19 @@ uv add --dev "types-protobuf>$PROTOBUF_VERSION"
 Replace download url with correct version/platform
 
 ```bash
-cd /var/tmp
-wget https://github.com/protocolbuffers/protobuf/releases/download/v28.0/protoc-28.0-linux-x86_64.zip
-unzip protoc-28.0-linux-x86_64.zip
-sudo cp bin/protoc /usr/local/bin/
-cd <project-dir>
-protoc --version # check version as expected
+sudo rm -r .protoc
+mkdir .protoc
+wget -P .protoc/ "https://github.com/protocolbuffers/protobuf/releases/download/v$PROTOBUF_MINOR.$PROTOBUF_PATCH/protoc-$PROTOBUF_MINOR.$PROTOBUF_PATCH-linux-x86_64.zip"
+unzip .protoc/protoc-$PROTOBUF_MINOR.$PROTOBUF_PATCH-linux-x86_64.zip -d .protoc/
+.protoc/bin/protoc --version # check version as expected
 ```
 
 ### Update generated python files
 
 ```bash
 export PROTO_DIR="firebase_messaging/proto"
-protoc --proto_path=$PROTO_DIR --python_out=$PROTO_DIR $PROTO_DIR/android_checkin.proto $PROTO_DIR/checkin.proto $PROTO_DIR/mcs.proto
-protoc --proto_path=$PROTO_DIR --pyi_out=$PROTO_DIR $PROTO_DIR/android_checkin.proto $PROTO_DIR/checkin.proto $PROTO_DIR/mcs.proto
+.protoc/bin/protoc --proto_path=$PROTO_DIR --python_out=$PROTO_DIR $PROTO_DIR/android_checkin.proto $PROTO_DIR/checkin.proto $PROTO_DIR/mcs.proto
+.protoc/bin/protoc --proto_path=$PROTO_DIR --pyi_out=$PROTO_DIR $PROTO_DIR/android_checkin.proto $PROTO_DIR/checkin.proto $PROTO_DIR/mcs.proto
 ```
 
 ### Fix relative import
