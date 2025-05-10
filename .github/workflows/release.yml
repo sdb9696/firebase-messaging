@@ -1,0 +1,71 @@
+name: Manual PyPI Artifact Sign and Release
+
+on:
+  workflow_dispatch:
+
+env:
+  PACKAGE_NAME: firebase-messaging
+
+jobs:
+  sign-and-release:
+    if: github.repository_owner == 'sdb9696'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check if latest commit is tagged
+        id: check-tag
+        run: |
+          TAG=$(git describe --exact-match --tags "$(git rev-parse HEAD)" 2>/dev/null || true)
+          if [[ -z "$TAG" ]]; then
+            echo "no_tag=true" >> $GITHUB_OUTPUT
+            # Get latest reachable tag
+            TAG=$(git describe --tags --abbrev=0)
+            echo "Using latest reachable tag: $TAG"
+          else
+            echo "no_tag=false" >> $GITHUB_OUTPUT
+          fi
+          echo "PACKAGE_VERSION=$TAG" >> $GITHUB_ENV
+      - name: Fetch PyPI artifact URLs
+        run: |
+          PACKAGE_NAME=${{ env.PACKAGE_NAME }}
+          VERSION=${{ env.PACKAGE_VERSION }}
+
+          JSON_URL="https://pypi.org/pypi/${PACKAGE_NAME}/${PACKAGE_VERSION}/json"
+          echo "Fetching: $JSON_URL"
+
+          urls=$(curl -s "$JSON_URL" | jq -r '.urls[].url')
+          mkdir -p dist
+          for url in $urls; do
+            echo "Downloading $url"
+            curl -sLO "$url"
+            mv "$(basename "$url")" dist/
+          done
+
+      - name: Sign the dists with Sigstore
+        uses: sigstore/gh-action-sigstore-python@v3.0.0
+        with:
+          inputs: >-
+            ./dist/*
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        # Repo clone is required for --notes-from-tag to work
+        run: |
+          gh repo clone '${{ github.repository }}'
+          cd ${{ github.event.repository.name }}
+          gh release create '${{ env.PACKAGE_VERSION }}' --verify-tag --notes-from-tag --title '${{ github.ref_name }}' ${{ steps.check-tag.outputs.no_tag == 'true' && '--draft' || '--draft' }}
+          cd ..
+
+      - name: Upload artifact signatures to GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        # Upload to GitHub Release using the `gh` CLI.
+        # `dist/` contains the built packages, and the
+        # sigstore-produced signatures and certificates.
+        run: >-
+          gh release upload
+          '${{ github.ref_name }}' dist/**
+          --repo '${{ github.repository }}'
