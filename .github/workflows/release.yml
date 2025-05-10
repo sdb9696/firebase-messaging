@@ -2,13 +2,16 @@ name: Manual PyPI Artifact Sign and Release
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
 
 env:
   PACKAGE_NAME: firebase-messaging
 
 jobs:
   sign-and-release:
-    if: github.repository_owner == 'sdb9696'
+    if: github.repository_owner == 'sdb9696' && github.ref_name == 'main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
