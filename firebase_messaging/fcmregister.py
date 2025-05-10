@@ -182,7 +182,7 @@ class FcmRegister:
     async def gcm_register(
         self,
         options: dict[str, Any],
-        retries: int = 2,
+        retries: int = 4,
     ) -> dict[str, str] | None:
         """
         obtains a gcm token
