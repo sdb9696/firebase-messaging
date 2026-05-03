@@ -688,15 +688,18 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
                     if self.run_state == FcmPushClientRunState.RESETTING:
                         counter = 0
                         while (
-                            counter < FcmPushClientConfig.max_wait_in_listen_for_reset 
-                            and (self.run_state == FcmPushClientRunState.RESETTING or 
-                            self.run_state == 
-                            FcmPushClientRunState.STARTING_CONNECTION)):
+                            counter < FcmPushClientConfig.max_wait_in_listen_for_reset
+                            and (
+                                self.run_state == FcmPushClientRunState.RESETTING
+                                or self.run_state
+                                == FcmPushClientRunState.STARTING_CONNECTION
+                            )
+                        ):
                             if (counter > 0) and (counter % 10 == 0):
                                 _logger.debug(f"Listen is waiting for reset to \
                                     succeed. Already slept for {counter}s, and \
                                     run state is still {self.run_state}.")
-                            counter = counter +1
+                            counter = counter + 1
                             await asyncio.sleep(1)
                         _logger.info(f"In total listen waited {counter}s for reset \
                             to succeed: run state is now {self.run_state}.")
