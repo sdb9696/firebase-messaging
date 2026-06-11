@@ -171,6 +171,7 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         self.do_listen = False
         self.sequential_error_counters: dict[ErrorType, int] = {}
         self.log_warn_counters: dict[str, int] = {}
+        self._last_listen_exception: BaseException | None = None
 
         # reset variables
         self.input_stream_id = 0
@@ -751,7 +752,27 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
                                 "Expected read error during reset: %s",
                                 type(osex).__name__,
                             )
+                    elif osex is self._last_listen_exception:
+                        # asyncio streams store a failed reader's exception
+                        # and re-raise the SAME object on every subsequent
+                        # read, growing its traceback by a few frames per
+                        # raise. Re-formatting it on every iteration is
+                        # quadratically expensive — enough to starve the
+                        # event loop (observed pegging a core for >10 min
+                        # on Python 3.14, where traceback formatting also
+                        # runs ast.parse per frame for caret anchors). Log
+                        # a single line instead and yield so the loop can
+                        # never spin hot on a poisoned reader.
+                        self._log_warn_with_limit(
+                            "Repeated unexpected read error: %s: %s",
+                            type(osex).__name__,
+                            osex,
+                        )
+                        await asyncio.sleep(1)
+                        if self._try_increment_error_count(ErrorType.CONNECTION):
+                            await self._reset()
                     else:
+                        self._last_listen_exception = osex
                         _logger.exception("Unexpected exception during read\n")
                         if self._try_increment_error_count(ErrorType.CONNECTION):
                             await self._reset()

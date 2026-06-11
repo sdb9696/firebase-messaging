@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+**Fixed bugs:**
+
+- Log the full traceback of an unexpected read error only on its first occurrence: asyncio streams re-raise the same stored exception object on every read of a failed stream, growing its traceback on each raise, and re-formatting it every loop iteration could starve the event loop (CPU pinned at 100%). Repeats are now summarised in a rate-limited single line and the listen loop yields for a second before retrying.
+
+
 ## [0.4.5](https://github.com/sdb9696/firebase-messaging/tree/0.4.5) (2025-05-10)
 
 [Full Changelog](https://github.com/sdb9696/firebase-messaging/compare/0.4.4...0.4.5)
