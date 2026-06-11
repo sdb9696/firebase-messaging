@@ -251,3 +251,27 @@ async def test_decrypt():
     )
 
     assert raw_data_decrypted == raw_data
+
+
+async def test_repeated_read_exception_logged_once_without_spinning(
+    logged_in_push_client, fake_mcs_endpoint, mocker, caplog
+):
+    await logged_in_push_client(None, None, reset_interval=0.1)
+
+    # asyncio.StreamReader re-raises the SAME stored exception object on
+    # every read of a failed stream; reproduce that with the sticky
+    # exception so each listen iteration sees the identical object.
+    error = ConnectionResetError("Connection lost")
+    fake_mcs_endpoint.client_reader.set_exception(error)
+    await fake_mcs_endpoint.put_error(error)
+
+    await asyncio.sleep(0.5)
+
+    # The full traceback must be logged exactly once; repeats of the same
+    # exception object are summarised in a single rate-limited line so the
+    # (ever-growing) traceback is never re-formatted inside the loop.
+    exc_records = [r for r in caplog.records if r.exc_info]
+    assert len(exc_records) == 1
+    assert any(
+        "Repeated unexpected read error" in r.getMessage() for r in caplog.records
+    )

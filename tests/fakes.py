@@ -43,8 +43,17 @@ class FakeMcsEndpoint:
         def __init__(self):
             self.queue = asyncio.Queue()
             self.lock = asyncio.Lock()
+            self.sticky_exception = None
+
+        def set_exception(self, error):
+            # Mirrors asyncio.StreamReader behaviour: once the stream has
+            # failed, every subsequent read re-raises the SAME exception
+            # object (asyncio.streams.StreamReader._exception).
+            self.sticky_exception = error
 
         async def readexactly(self, size):
+            if self.sticky_exception is not None:
+                raise self.sticky_exception
             if size == 0:
                 return b""
             val = await self.queue.get()
