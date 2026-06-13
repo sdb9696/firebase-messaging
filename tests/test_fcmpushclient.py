@@ -251,3 +251,55 @@ async def test_decrypt():
     )
 
     assert raw_data_decrypted == raw_data
+
+
+async def test_decrypt_unpadded_crypto_key_and_salt():
+    """crypto-key/salt headers arrive without base64 '=' padding (RFC 8291).
+
+    The wire format strips padding, so _decrypt_raw_data must restore it
+    instead of raising binascii.Error on otherwise valid input.
+    """
+
+    def get_app_data_by_key(msg, key):
+        for x in msg.app_data:
+            if x.key == key:
+                return x.value
+
+    dms = load_fixture_as_msg("data_message_stanza.json", DataMessageStanza)
+    credentials = load_fixture_as_dict("credentials.json")
+    raw_data = b'{ "foo" : "bar" }'
+    salt_str = get_app_data_by_key(dms, "encryption")[5:]
+    salt = urlsafe_b64decode(salt_str.encode("ascii"))
+
+    sender_pub = "BAGEFtID7WlmwzQ9pbjdRYAhfPe7Z8lA3ZGIPUh0SE3ikoY2PIrWUP0rmhpE4Kl8ImgMUDjKWrz0WmtLxORIHuw"
+    sender_pri_der = urlsafe_b64decode(
+        "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgwSUpDfIqdJG3XVkn7t1GExHuW3gsqD4-J525w-rnCIihRANCAAQBhBbSA-1pZsM0PaW43UWAIXz3u2fJQN2RiD1IdEhN4pKGNjyK1lD9K5oaROCpfCJoDFA4ylq89FprS8TkSB7s".encode(
+            "ascii"
+        )
+        + b"========"
+    )
+    sender_privkey = load_der_private_key(
+        sender_pri_der, password=None, backend=default_backend()
+    )
+    sender_sec = urlsafe_b64decode(
+        credentials["keys"]["secret"].encode("ascii") + b"========"
+    )
+    receiver_pub_key = urlsafe_b64decode(
+        credentials["keys"]["public"].encode("ascii") + b"="
+    )
+    raw_data_encrypted = encrypt(
+        raw_data,
+        salt=salt,
+        private_key=sender_privkey,
+        dh=receiver_pub_key,
+        version="aesgcm",
+        auth_secret=sender_sec,
+    )
+
+    # Pass the crypto-key and salt WITHOUT padding, as they arrive on the wire.
+    assert len(sender_pub) % 4 != 0  # genuinely unpadded
+    raw_data_decrypted = FcmPushClient._decrypt_raw_data(
+        credentials, sender_pub, salt_str, raw_data_encrypted
+    )
+
+    assert raw_data_decrypted == raw_data
