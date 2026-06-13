@@ -119,6 +119,15 @@ class FcmPushClientConfig:  # pylint:disable=too-many-instance-attributes
     """Number of sequential errors of the same time to wait before aborting.
         If set to None the client will not abort."""
 
+    abort_on_connection_failure: bool = False
+    """If False (default) the client keeps retrying the connection indefinitely
+        (with backoff) when a reconnect fails, so it can self-heal once
+        connectivity returns. Set to True to shut down after
+        connection_retry_count attempts (legacy behaviour)."""
+
+    reconnect_backoff_max: float = 300
+    """Maximum delay in seconds between transient-read reconnect attempts."""
+
     monitor_interval: float = 1
     """Time in seconds for the monitor task to fire and check for heartbeats,
         stale connections and shut down of the main event loop."""
@@ -171,6 +180,7 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         self.do_listen = False
         self.sequential_error_counters: dict[ErrorType, int] = {}
         self.log_warn_counters: dict[str, int] = {}
+        self._transient_error_count = 0
 
         # reset variables
         self.input_stream_id = 0
@@ -234,13 +244,22 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
                 await asyncio.sleep(self.config.reset_interval - time_since_last_login)
 
             _logger.debug("Reestablishing connection")
-            if not await self._connect_with_retry():
-                _logger.error(
-                    "Unable to connect to MCS endpoint "
-                    + "after %s tries, shutting down",
+            while self.do_listen and not await self._connect_with_retry():
+                if self.config.abort_on_connection_failure:
+                    _logger.error(
+                        "Unable to connect to MCS endpoint "
+                        + "after %s tries, shutting down",
+                        self.config.connection_retry_count,
+                    )
+                    self._terminate()
+                    return
+                self._log_warn_with_limit(
+                    "Unable to connect to MCS endpoint after %s tries; "
+                    "retrying (will not give up).",
                     self.config.connection_retry_count,
                 )
-                self._terminate()
+                await asyncio.sleep(self.config.reset_interval)
+            if not self.do_listen:
                 return
             _logger.debug("Re-connected to ssl socket")
 
@@ -723,6 +742,7 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
                                 self.run_state,
                             )
                     elif msg := await self._receive_msg():
+                        self._transient_error_count = 0
                         await self._handle_message(msg)
 
                 except (OSError, EOFError) as osex:
@@ -751,6 +771,27 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
                                 "Expected read error during reset: %s",
                                 type(osex).__name__,
                             )
+                    elif isinstance(osex, (asyncio.IncompleteReadError, TimeoutError)):
+                        # Transient stream read (e.g. a 0-byte read, or "SSL
+                        # shutdown timed out" after a stuck writer close):
+                        # reconnect with exponential backoff, without advancing
+                        # the CONNECTION abort counter.
+                        self._transient_error_count += 1
+                        delay = min(
+                            self.config.reset_interval
+                            * (2 ** min(self._transient_error_count - 1, 8)),
+                            self.config.reconnect_backoff_max,
+                        )
+                        self._log_warn_with_limit(
+                            "Transient read failure (%s), reconnecting in %ss "
+                            "(attempt %s): %s",
+                            type(osex).__name__,
+                            round(delay),
+                            self._transient_error_count,
+                            osex,
+                        )
+                        await asyncio.sleep(delay)
+                        await self._reset()
                     else:
                         _logger.exception("Unexpected exception during read\n")
                         if self._try_increment_error_count(ErrorType.CONNECTION):

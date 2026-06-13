@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives.serialization import load_der_private_key
 from http_ece import encrypt
 
 from firebase_messaging import FcmPushClient, FcmRegisterConfig
-from firebase_messaging.fcmpushclient import FcmPushClientRunState
+from firebase_messaging.fcmpushclient import ErrorType, FcmPushClientRunState
 from firebase_messaging.proto.mcs_pb2 import (
     Close,
     DataMessageStanza,
@@ -158,6 +158,88 @@ async def test_terminate(
         else:
             assert reset_spy.call_count == i - 1
             assert term_spy.call_count == 1
+
+
+@pytest.mark.parametrize(
+    "error",
+    [TimeoutError("SSL shutdown timed out"), asyncio.IncompleteReadError(b"", 1)],
+)
+async def test_transient_read_failure_reconnects_without_connection_counter(
+    logged_in_push_client, fake_mcs_endpoint, mocker, error
+):
+    # Transient read failures (e.g. SSL shutdown timeout) should reconnect
+    # without advancing the CONNECTION abort counter and without terminating.
+    pr = await logged_in_push_client(
+        None, None, abort_on_sequential_error_count=3, reset_interval=0.05
+    )
+    reset_spy = mocker.spy(pr, "_reset")
+    term_spy = mocker.spy(pr, "_terminate")
+    inc_spy = mocker.spy(pr, "_try_increment_error_count")
+
+    await fake_mcs_endpoint.put_error(error)
+    await asyncio.sleep(0.3)
+
+    assert reset_spy.call_count >= 1
+    assert term_spy.call_count == 0
+    conn_increments = [
+        c
+        for c in inc_spy.call_args_list
+        if c.args and c.args[0] is ErrorType.CONNECTION
+    ]
+    assert not conn_increments
+
+    msg = await fake_mcs_endpoint.get_message()
+    assert isinstance(msg, LoginRequest)
+
+
+async def test_reconnect_self_heals_when_connect_fails(
+    logged_in_push_client, fake_mcs_endpoint, mocker, caplog
+):
+    # When every reconnect attempt fails (sustained outage) the client must keep
+    # retrying with backoff and never give up / terminate (default behaviour).
+    pr = await logged_in_push_client(
+        None,
+        None,
+        reset_interval=0.02,
+        connection_retry_count=2,
+        start_seconds_before_retry_connect=0,
+        supress_disconnect=True,
+    )
+    term_spy = mocker.spy(pr, "_terminate")
+    connect_mock = mocker.patch.object(pr, "_connect", return_value=False)
+
+    await fake_mcs_endpoint.put_error(TimeoutError("SSL shutdown timed out"))
+    await asyncio.sleep(0.5)
+
+    assert term_spy.call_count == 0
+    assert connect_mock.call_count >= 3
+    assert any("will not give up" in record.message for record in caplog.records)
+
+    pr.do_listen = False  # let the self-heal loop exit for a clean teardown
+    await asyncio.sleep(0.1)
+
+
+async def test_abort_on_connection_failure_terminates(
+    logged_in_push_client, fake_mcs_endpoint, mocker
+):
+    # Opting in to abort_on_connection_failure restores the legacy behaviour:
+    # shut down once a reconnect fails.
+    pr = await logged_in_push_client(
+        None,
+        None,
+        reset_interval=0.02,
+        connection_retry_count=2,
+        start_seconds_before_retry_connect=0,
+        abort_on_connection_failure=True,
+        supress_disconnect=True,
+    )
+    term_spy = mocker.spy(pr, "_terminate")
+    mocker.patch.object(pr, "_connect", return_value=False)
+
+    await fake_mcs_endpoint.put_error(TimeoutError("SSL shutdown timed out"))
+    await asyncio.sleep(0.3)
+
+    assert term_spy.call_count == 1
 
 
 async def test_heartbeat_receive(logged_in_push_client, fake_mcs_endpoint, caplog):
