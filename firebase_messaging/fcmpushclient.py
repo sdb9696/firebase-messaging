@@ -142,6 +142,10 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         :class:`firebase_messaging.FcmPushClientConfig`
     """
 
+    # max seconds stop() waits for the listen/monitor tasks to finish cancelling
+    # after the socket is closed; only a guard against a wedged task
+    STOP_TIMEOUT_SEC = 5.0
+
     def __init__(
         self,
         callback: Callable[[dict, str, Any | None], None],
@@ -519,6 +523,14 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         self.run_state = FcmPushClientRunState.STOPPING
 
         self.do_listen = False
+
+        # close the transport so a sibling task parked on reader.readexactly()
+        # unblocks now instead of waiting out the ssl read (sync context, so we
+        # only start the close; the owning task's finally awaits wait_closed)
+        if self.writer:
+            with contextlib.suppress(Exception):
+                self.writer.close()
+
         current_task = asyncio.current_task()
         for task in self.tasks:
             if (
@@ -799,28 +811,45 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
             _logger.error("Unexpected error running FcmPushClient: %s", ex)
 
     async def stop(self) -> None:
-        if (
-            self.stopping_lock
-            and self.stopping_lock.locked()
-            or self.run_state
-            in (
-                FcmPushClientRunState.STOPPING,
-                FcmPushClientRunState.STOPPED,
-            )
+        # stop() can be called before start() ran (e.g. failed setup): no lock yet
+        if self.stopping_lock is None:
+            self.run_state = FcmPushClientRunState.STOPPED
+            return
+
+        if self.stopping_lock.locked() or self.run_state in (
+            FcmPushClientRunState.STOPPING,
+            FcmPushClientRunState.STOPPED,
         ):
             return
 
-        async with self.stopping_lock:  # type: ignore[union-attr]
+        async with self.stopping_lock:
             try:
                 self.run_state = FcmPushClientRunState.STOPPING
 
                 self.do_listen = False
 
+                # cancel, then close the socket: _listen() parks on readexactly()
+                # and cancelling alone can hang on the ssl read, so closing the
+                # writer forces it to fail and lets the cancellation unwind
+                current_task = asyncio.current_task()
+                pending = []
                 for task in self.tasks:
-                    if not task.done():
-                        task.cancel()
+                    if task is current_task or task.done():
+                        continue
+                    task.cancel()
+                    pending.append(task)
+
+                await self._do_writer_close()
+
+                # await the cancelled tasks so callers (e.g. home assistant's
+                # shutdown) don't log "could not be canceled" stragglers; bounded
+                # so a wedged task can never hang stop()
+                if pending:
+                    with contextlib.suppress(Exception):
+                        await asyncio.wait(pending, timeout=self.STOP_TIMEOUT_SEC)
 
             finally:
+                self.tasks = []
                 self.run_state = FcmPushClientRunState.STOPPED
                 self.fcm_thread = None
                 self.listen_event_loop = None
