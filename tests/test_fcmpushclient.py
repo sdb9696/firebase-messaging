@@ -9,7 +9,10 @@ from cryptography.hazmat.primitives.serialization import load_der_private_key
 from http_ece import encrypt
 
 from firebase_messaging import FcmPushClient, FcmRegisterConfig
-from firebase_messaging.fcmpushclient import FcmPushClientRunState
+from firebase_messaging.fcmpushclient import (
+    FcmPushClientRunState,
+    _webpush_header_param,
+)
 from firebase_messaging.proto.mcs_pb2 import (
     Close,
     DataMessageStanza,
@@ -251,3 +254,97 @@ async def test_decrypt():
     )
 
     assert raw_data_decrypted == raw_data
+
+
+@pytest.mark.parametrize(
+    ("header", "name", "expected"),
+    [
+        # A single parameter, the shape that has always worked.
+        ("dh=AAAA", "dh", "AAAA"),
+        ("salt=BBBB", "salt", "BBBB"),
+        # VAPID senders add p256ecdsa; the order of parameters is not fixed.
+        ("dh=AAAA; p256ecdsa=CCCC", "dh", "AAAA"),
+        ("p256ecdsa=CCCC;dh=AAAA", "dh", "AAAA"),
+        ("dh=AAAA; p256ecdsa=CCCC", "p256ecdsa", "CCCC"),
+        # Padding stripped on the wire is restored.
+        ("dh=AAA", "dh", "AAA="),
+        ("salt=BB", "salt", "BB=="),
+        # A bare value without the name= prefix is accepted as that value.
+        ("AAAA", "dh", "AAAA"),
+        ("BB==", "salt", "BB=="),
+    ],
+)
+def test_webpush_header_param(header, name, expected):
+    assert _webpush_header_param(header, name) == expected
+
+
+def test_webpush_header_param_missing():
+    with pytest.raises(ValueError, match="no 'dh' parameter"):
+        _webpush_header_param("p256ecdsa=CCCC; rs=4096", "dh")
+
+
+async def test_decrypt_vapid_crypto_key():
+    """A crypto-key carrying dh plus p256ecdsa must still decrypt.
+
+    Positional slicing left `; p256ecdsa=...` attached to the dh value; the
+    base64 decoder silently dropped the separator and the label characters, so
+    the DH key came out the wrong length and `from_encoded_point` rejected it
+    with "Invalid EC key." Seen in the wild against a Russian intercom operator
+    that started signing its pushes with VAPID.
+    """
+
+    def get_app_data_by_key(msg, key):
+        for x in msg.app_data:
+            if x.key == key:
+                return x.value
+
+    def set_app_data_by_key(msg, key, value):
+        for x in msg.app_data:
+            if x.key == key:
+                x.value = value
+
+    dms = load_fixture_as_msg("data_message_stanza.json", DataMessageStanza)
+    credentials = load_fixture_as_dict("credentials.json")
+    raw_data = b'{ "foo" : "bar" }'
+    salt_str = get_app_data_by_key(dms, "encryption")[5:]
+    salt = urlsafe_b64decode(salt_str.encode("ascii"))
+
+    sender_pub = "BAGEFtID7WlmwzQ9pbjdRYAhfPe7Z8lA3ZGIPUh0SE3ikoY2PIrWUP0rmhpE4Kl8ImgMUDjKWrz0WmtLxORIHuw"
+    sender_pri_der = urlsafe_b64decode(
+        "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgwSUpDfIqdJG3XVkn7t1GExHuW3gsqD4-J525w-rnCIihRANCAAQBhBbSA-1pZsM0PaW43UWAIXz3u2fJQN2RiD1IdEhN4pKGNjyK1lD9K5oaROCpfCJoDFA4ylq89FprS8TkSB7s".encode(
+            "ascii"
+        )
+        + b"========"
+    )
+    sender_privkey = load_der_private_key(
+        sender_pri_der, password=None, backend=default_backend()
+    )
+    sender_sec = urlsafe_b64decode(
+        credentials["keys"]["secret"].encode("ascii") + b"========"
+    )
+    receiver_pub_key = urlsafe_b64decode(
+        credentials["keys"]["public"].encode("ascii") + b"="
+    )
+    raw_data_encrypted = encrypt(
+        raw_data,
+        salt=salt,
+        private_key=sender_privkey,
+        dh=receiver_pub_key,
+        version="aesgcm",
+        auth_secret=sender_sec,
+    )
+
+    # Exactly what the operator sends: two parameters, dh unpadded.
+    set_app_data_by_key(dms, "crypto-key", f"dh={sender_pub}; p256ecdsa={sender_pub}")
+    dms.raw_data = raw_data_encrypted
+
+    received = []
+    client = FcmPushClient(
+        lambda notification, persistent_id, obj: received.append(notification),
+        FcmRegisterConfig("project-1234", "bar", "foobar", "foobar"),
+        credentials,
+        None,
+    )
+    client._handle_data_message(dms)
+
+    assert received == [{"foo": "bar"}]
