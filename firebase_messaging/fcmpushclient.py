@@ -46,15 +46,42 @@ OnNotificationCallable = Callable[[dict[str, Any], str, Any], None]
 CredentialsUpdatedCallable = Callable[[dict[str, Any]], None]
 
 
-def _urlsafe_b64decode_padded(data: str) -> bytes:
-    """Decode urlsafe base64 that may be missing its '=' padding.
+def _b64_pad(value: str) -> str:
+    """Restore the ``=`` padding stripped from a base64url value."""
+    return value + "=" * (-len(value) % 4)
 
-    Webpush keys and the crypto-key/salt headers (RFC 8291) are transmitted
-    without padding. ``base64.urlsafe_b64decode`` raises ``binascii.Error``
-    (a ``ValueError`` subclass) on unpadded input, so restore the padding
-    before decoding.
+
+def _urlsafe_b64decode_padded(data: str) -> bytes:
+    """Decode URL-safe base64 after restoring omitted padding."""
+    return urlsafe_b64decode(_b64_pad(data).encode("ascii"))
+
+
+def _webpush_header_param(header: str, name: str) -> str:
+    """Return one parameter of a Web Push ``Crypto-Key``/``Encryption`` header.
+
+    Both headers are lists of ``;``-separated parameters (RFC 8188 §2.1,
+    RFC 8291 §4) and their order is not fixed, so a parameter has to be looked
+    up by name rather than sliced off by position. Senders that sign with VAPID
+    add ``p256ecdsa`` alongside ``dh``, in which case a positional slice leaves
+    the second parameter attached to the first one's value.
+
+    Values are base64url and may arrive without ``=`` padding, so the padding is
+    restored here and the result is ready to decode.
+
+    A header holding a bare value with no ``name=`` prefix is accepted as that
+    value, which keeps senders that omit the prefix working.
     """
-    return urlsafe_b64decode(data.encode("ascii") + b"=" * (-len(data) % 4))
+    for segment in header.split(";"):
+        param, sep, value = segment.strip().partition("=")
+        if sep and param == name:
+            return _b64_pad(value.strip())
+
+    bare = header.strip()
+    # `=` in base64url only ever appears as trailing padding, so a header
+    # without an inner `=` cannot be a parameter list.
+    if "=" not in bare.rstrip("="):
+        return _b64_pad(bare)
+    raise ValueError(f"no {name!r} parameter in header {header.split('=')[0]!r}")
 
 
 # MCS Message Types and Tags
@@ -435,8 +462,10 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         ):
             # The deleted_messages message does not contain data.
             return
-        crypto_key = self._app_data_by_key(msg, "crypto-key")[3:]  # strip dh=
-        salt = self._app_data_by_key(msg, "encryption")[5:]  # strip salt=
+        crypto_key = _webpush_header_param(
+            self._app_data_by_key(msg, "crypto-key"), "dh"
+        )
+        salt = _webpush_header_param(self._app_data_by_key(msg, "encryption"), "salt")
         subtype = self._app_data_by_key(msg, "subtype")
         if TYPE_CHECKING:
             assert self.credentials
@@ -454,9 +483,7 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
                 self.credentials, crypto_key, salt, msg.raw_data
             )
         except ValueError as ex:
-            # binascii.Error and http_ece decrypt failures are both ValueError.
-            # Skip the undecryptable message rather than tearing down the
-            # connection so a single bad payload can't stop the listener.
+            # A malformed frame must not tear down the entire push listener.
             self._log_warn_with_limit(
                 "Failed to decrypt data for message %s: %s", msg.persistent_id, ex
             )

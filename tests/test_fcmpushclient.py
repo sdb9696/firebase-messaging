@@ -9,7 +9,11 @@ from cryptography.hazmat.primitives.serialization import load_der_private_key
 from http_ece import encrypt
 
 from firebase_messaging import FcmPushClient, FcmRegisterConfig
-from firebase_messaging.fcmpushclient import FcmPushClientRunState
+from firebase_messaging.fcmpushclient import (
+    FcmPushClientRunState,
+    _urlsafe_b64decode_padded,
+    _webpush_header_param,
+)
 from firebase_messaging.proto.mcs_pb2 import (
     Close,
     DataMessageStanza,
@@ -253,17 +257,71 @@ async def test_decrypt():
     assert raw_data_decrypted == raw_data
 
 
-async def test_decrypt_unpadded_crypto_key_and_salt():
-    """crypto-key/salt headers arrive without base64 '=' padding (RFC 8291).
+@pytest.mark.parametrize(
+    ("header", "name", "expected"),
+    [
+        # A single parameter, the shape that has always worked.
+        ("dh=AAAA", "dh", "AAAA"),
+        ("salt=BBBB", "salt", "BBBB"),
+        # VAPID senders add p256ecdsa; the order of parameters is not fixed.
+        ("dh=AAAA; p256ecdsa=CCCC", "dh", "AAAA"),
+        ("p256ecdsa=CCCC;dh=AAAA", "dh", "AAAA"),
+        ("dh=AAAA; p256ecdsa=CCCC", "p256ecdsa", "CCCC"),
+        # Padding stripped on the wire is restored.
+        ("dh=AAA", "dh", "AAA="),
+        ("salt=BB", "salt", "BB=="),
+        # A bare value without the name= prefix is accepted as that value.
+        ("AAAA", "dh", "AAAA"),
+        ("BB==", "salt", "BB=="),
+    ],
+)
+def test_webpush_header_param(header, name, expected):
+    assert _webpush_header_param(header, name) == expected
 
-    The wire format strips padding, so _decrypt_raw_data must restore it
-    instead of raising binascii.Error on otherwise valid input.
+
+def test_webpush_header_param_missing():
+    with pytest.raises(ValueError, match="no 'dh' parameter"):
+        _webpush_header_param("p256ecdsa=CCCC; rs=4096", "dh")
+
+
+def test_urlsafe_b64decode_padded():
+    assert _urlsafe_b64decode_padded("SGVsbG8") == b"Hello"
+
+
+def test_bad_encrypted_frame_does_not_escape(mocker):
+    """One malformed push frame must not terminate the listener."""
+    dms = load_fixture_as_msg("data_message_stanza.json", DataMessageStanza)
+    credentials = load_fixture_as_dict("credentials.json")
+    client = FcmPushClient(
+        None,
+        FcmRegisterConfig("project-1234", "bar", "foobar", "foobar"),
+        credentials,
+        None,
+    )
+    mocker.patch.object(client, "_decrypt_raw_data", side_effect=ValueError("bad"))
+
+    client._handle_data_message(dms)
+
+
+async def test_decrypt_vapid_crypto_key():
+    """A crypto-key carrying dh plus p256ecdsa must still decrypt.
+
+    Positional slicing left `; p256ecdsa=...` attached to the dh value; the
+    base64 decoder silently dropped the separator and the label characters, so
+    the DH key came out the wrong length and `from_encoded_point` rejected it
+    with "Invalid EC key." Seen in the wild against a Russian intercom operator
+    that started signing its pushes with VAPID.
     """
 
     def get_app_data_by_key(msg, key):
         for x in msg.app_data:
             if x.key == key:
                 return x.value
+
+    def set_app_data_by_key(msg, key, value):
+        for x in msg.app_data:
+            if x.key == key:
+                x.value = value
 
     dms = load_fixture_as_msg("data_message_stanza.json", DataMessageStanza)
     credentials = load_fixture_as_dict("credentials.json")
@@ -296,10 +354,17 @@ async def test_decrypt_unpadded_crypto_key_and_salt():
         auth_secret=sender_sec,
     )
 
-    # Pass the crypto-key and salt WITHOUT padding, as they arrive on the wire.
-    assert len(sender_pub) % 4 != 0  # genuinely unpadded
-    raw_data_decrypted = FcmPushClient._decrypt_raw_data(
-        credentials, sender_pub, salt_str, raw_data_encrypted
-    )
+    # Exactly what the operator sends: two parameters, dh unpadded.
+    set_app_data_by_key(dms, "crypto-key", f"dh={sender_pub}; p256ecdsa={sender_pub}")
+    dms.raw_data = raw_data_encrypted
 
-    assert raw_data_decrypted == raw_data
+    received = []
+    client = FcmPushClient(
+        lambda notification, persistent_id, obj: received.append(notification),
+        FcmRegisterConfig("project-1234", "bar", "foobar", "foobar"),
+        credentials,
+        None,
+    )
+    client._handle_data_message(dms)
+
+    assert received == [{"foo": "bar"}]
