@@ -38,6 +38,18 @@ from .proto.checkin_pb2 import (
 
 _logger = logging.getLogger(__name__)
 
+_NON_RETRYABLE_GCM_ERRORS = frozenset({"PHONE_REGISTRATION_ERROR"})
+
+
+class FcmRegistrationError(RuntimeError):
+    """Error returned by an FCM or GCM registration provider."""
+
+    def __init__(self, stage: str, code: str, *, retryable: bool) -> None:
+        super().__init__(f"{stage} failed with provider error {code}")
+        self.stage = stage
+        self.code = code
+        self.retryable = retryable
+
 
 @dataclass
 class FcmRegisterConfig:
@@ -211,7 +223,7 @@ class FcmRegister:
         if self._log_debug_verbose:
             _logger.debug("GCM Registration request: %s", body)
 
-        last_error: str | Exception | None = None
+        last_error: Exception | None = None
         for try_num in range(retries):
             try:
                 async with self._session.post(
@@ -221,15 +233,26 @@ class FcmRegister:
                     timeout=self.CLIENT_TIMEOUT,
                 ) as resp:
                     response_text = await resp.text()
-                if "Error" in response_text:
+                response_type, separator, response_value = response_text.partition("=")
+                if separator and response_type == "Error":
+                    error_code = response_value.strip()
+                    provider_error = FcmRegistrationError(
+                        "gcm_register",
+                        error_code,
+                        retryable=error_code not in _NON_RETRYABLE_GCM_ERRORS,
+                    )
                     _logger.warning(
-                        "GCM register request attempt %s out of %s has failed with %s",
+                        "GCM register request attempt %s out of %s failed with "
+                        "provider error %s",
                         try_num + 1,
                         retries,
-                        response_text,
+                        error_code,
                     )
-                    last_error = response_text
-                    await asyncio.sleep(1)
+                    if not provider_error.retryable:
+                        raise provider_error
+                    last_error = provider_error
+                    if try_num + 1 < retries:
+                        await asyncio.sleep(1)
                     continue
                 token = response_text.split("=")[1]
 
@@ -240,6 +263,8 @@ class FcmRegister:
                     "security_token": security_token,
                 }
 
+            except FcmRegistrationError:
+                raise
             except Exception as e:
                 last_error = e
                 _logger.warning(
@@ -248,13 +273,15 @@ class FcmRegister:
                     retries,
                     exc_info=e,
                 )
-                await asyncio.sleep(1)
+                if try_num + 1 < retries:
+                    await asyncio.sleep(1)
 
         errorstr = f"Unable to complete gcm auth request after {retries} tries"
-        if isinstance(last_error, Exception):
+        if isinstance(last_error, FcmRegistrationError):
+            raise last_error
+        if last_error:
             _logger.error(errorstr, exc_info=last_error)
         else:
-            errorstr += f", last error was {last_error}"
             _logger.error(errorstr)
         return None
 
