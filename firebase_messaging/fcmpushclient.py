@@ -4,6 +4,7 @@ import asyncio
 import contextlib
 import json
 import logging
+import re
 import ssl
 import struct
 import time
@@ -378,8 +379,8 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         salt_str: str,
         raw_data: bytes,
     ) -> bytes:
-        crypto_key = urlsafe_b64decode(crypto_key_str.encode("ascii"))
-        salt = urlsafe_b64decode(salt_str.encode("ascii"))
+        crypto_key = urlsafe_b64decode(FcmPushClient._b64_pad(crypto_key_str))
+        salt = urlsafe_b64decode(FcmPushClient._b64_pad(salt_str))
         der_data_str = credentials["keys"]["private"]
         der_data = urlsafe_b64decode(der_data_str.encode("ascii") + b"========")
         secret_str = credentials["keys"]["secret"]
@@ -396,6 +397,28 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
             auth_secret=secret,
         )
         return decrypted
+
+    @staticmethod
+    def _b64_pad(value: str) -> bytes:
+        """Return value as ascii bytes with any missing base64 padding added.
+
+        Web push headers carry base64url without padding (RFC 8291/8188).
+        """
+        value = value.strip()
+        return (value + "=" * (-len(value) % 4)).encode("ascii")
+
+    @staticmethod
+    def _header_param(header: str, name: str) -> str | None:
+        """Return the value of name= from a header like 'dh=abc;p256ecdsa=def'.
+
+        The crypto-key and encryption headers may carry several
+        semicolon or comma separated parameters, in any order.
+        """
+        for part in re.split(r"[;,]", header):
+            key, sep, value = part.partition("=")
+            if sep and key.strip().lower() == name:
+                return value.strip().strip('"')
+        return None
 
     def _app_data_by_key(
         self, p: DataMessageStanza, key: str, do_not_raise: bool = False
@@ -425,8 +448,14 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         ):
             # The deleted_messages message does not contain data.
             return
-        crypto_key = self._app_data_by_key(msg, "crypto-key")[3:]  # strip dh=
-        salt = self._app_data_by_key(msg, "encryption")[5:]  # strip salt=
+        crypto_key = self._header_param(self._app_data_by_key(msg, "crypto-key"), "dh")
+        salt = self._header_param(self._app_data_by_key(msg, "encryption"), "salt")
+        if crypto_key is None or salt is None:
+            self._log_warn_with_limit(
+                "Missing dh or salt in encryption headers for message %s",
+                msg.persistent_id,
+            )
+            return
         subtype = self._app_data_by_key(msg, "subtype")
         if TYPE_CHECKING:
             assert self.credentials

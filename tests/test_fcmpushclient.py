@@ -40,8 +40,26 @@ async def test_login(logged_in_push_client, fake_mcs_endpoint, mocker, caplog):
     ]
 
 
+@pytest.mark.parametrize(
+    ("crypto_key_fmt", "encryption_fmt"),
+    [
+        pytest.param("dh={}", "salt={}", id="padded"),
+        pytest.param("dh={nopad}", "salt={nopad}", id="unpadded"),
+        pytest.param(
+            "dh={nopad};p256ecdsa=BOrlQmQ", "salt={nopad};rs=4096", id="extra-params"
+        ),
+        pytest.param(
+            "p256ecdsa=BOrlQmQ; dh={nopad}", "salt={nopad}", id="dh-not-first"
+        ),
+    ],
+)
 async def test_data_message_receive(
-    logged_in_push_client, fake_mcs_endpoint, mocker, caplog
+    logged_in_push_client,
+    fake_mcs_endpoint,
+    mocker,
+    caplog,
+    crypto_key_fmt,
+    encryption_fmt,
 ):
     notification = None
     persistent_id = None
@@ -64,6 +82,13 @@ async def test_data_message_receive(
     await logged_in_push_client(on_msg, credentials, callback_obj=obj)
 
     dms = load_fixture_as_msg("data_message_stanza.json", DataMessageStanza)
+    for item in dms.app_data:
+        if item.key == "crypto-key":
+            value = item.value.partition("=")[2]
+            item.value = crypto_key_fmt.format(value, nopad=value.rstrip("="))
+        elif item.key == "encryption":
+            value = item.value.partition("=")[2]
+            item.value = encryption_fmt.format(value, nopad=value.rstrip("="))
     await fake_mcs_endpoint.put_message(dms)
     msg = await fake_mcs_endpoint.get_message()
     assert isinstance(msg, IqStanza)
