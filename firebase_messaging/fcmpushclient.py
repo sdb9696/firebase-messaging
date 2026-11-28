@@ -88,12 +88,13 @@ def _header_param(header: str, name: str) -> str:
     """Return one parameter of a Crypto-Key or Encryption header.
 
     Senders may add parameters (``dh=...;p256ecdsa=...``), so slicing off the
-    prefix would glue two keys together.
+    prefix would glue two keys together. Parameter names are matched
+    case-insensitively and whitespace around ``=`` is ignored.
     """
     for part in header.replace(",", ";").split(";"):
-        key, _, value = part.strip().partition("=")
-        if key == name:
-            return value
+        key, _, value = part.partition("=")
+        if key.strip().lower() == name.lower():
+            return value.strip()
     raise ValueError(f"no {name}= parameter in header")
 
 

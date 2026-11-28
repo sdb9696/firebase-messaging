@@ -294,6 +294,10 @@ def _encrypted_message(crypto_key, encryption, salt, raw_data, credentials):
         ("p256ecdsa=BBB; dh=AAA", "dh", "AAA"),
         ("keyid=p256dh,dh=AAA", "dh", "AAA"),
         ("salt=SSS==;rs=4096", "salt", "SSS=="),
+        ("dh = AAA", "dh", "AAA"),
+        ("p256ecdsa = BBB ; dh\t=\tAAA", "dh", "AAA"),
+        ("DH=AAA", "dh", "AAA"),
+        ("Salt=SSS==;RS=4096", "salt", "SSS=="),
     ],
 )
 def test_header_param(header, name, expected):
