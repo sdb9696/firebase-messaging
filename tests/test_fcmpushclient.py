@@ -1,15 +1,15 @@
 """The tests for the Ring platform."""
 
 import asyncio
-from base64 import standard_b64encode, urlsafe_b64decode
+from base64 import standard_b64encode, urlsafe_b64decode, urlsafe_b64encode
 
 import pytest
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from http_ece import encrypt
 
-from firebase_messaging import FcmPushClient, FcmRegisterConfig
-from firebase_messaging.fcmpushclient import FcmPushClientRunState
+from firebase_messaging import FcmPushClient, FcmPushClientConfig, FcmRegisterConfig
+from firebase_messaging.fcmpushclient import FcmPushClientRunState, _header_param
 from firebase_messaging.proto.mcs_pb2 import (
     Close,
     DataMessageStanza,
@@ -251,3 +251,97 @@ async def test_decrypt():
     )
 
     assert raw_data_decrypted == raw_data
+
+
+SENDER_PUB = "BAGEFtID7WlmwzQ9pbjdRYAhfPe7Z8lA3ZGIPUh0SE3ikoY2PIrWUP0rmhpE4Kl8ImgMUDjKWrz0WmtLxORIHuw"
+SENDER_PRI = "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgwSUpDfIqdJG3XVkn7t1GExHuW3gsqD4-J525w-rnCIihRANCAAQBhBbSA-1pZsM0PaW43UWAIXz3u2fJQN2RiD1IdEhN4pKGNjyK1lD9K5oaROCpfCJoDFA4ylq89FprS8TkSB7s"
+
+
+def _set_app_data(msg, key, value):
+    for x in msg.app_data:
+        if x.key == key:
+            x.value = value
+
+
+def _encrypted_message(crypto_key, encryption, salt, raw_data, credentials):
+    """Build a data message encrypted with the fixture keys."""
+    dms = load_fixture_as_msg("data_message_stanza.json", DataMessageStanza)
+    sender_privkey = load_der_private_key(
+        urlsafe_b64decode(SENDER_PRI.encode("ascii") + b"========"),
+        password=None,
+        backend=default_backend(),
+    )
+    dms.raw_data = encrypt(
+        raw_data,
+        salt=salt,
+        private_key=sender_privkey,
+        dh=urlsafe_b64decode(credentials["keys"]["public"].encode("ascii") + b"="),
+        version="aesgcm",
+        auth_secret=urlsafe_b64decode(
+            credentials["keys"]["secret"].encode("ascii") + b"========"
+        ),
+    )
+    _set_app_data(dms, "crypto-key", crypto_key)
+    _set_app_data(dms, "encryption", encryption)
+    return dms
+
+
+@pytest.mark.parametrize(
+    ("header", "name", "expected"),
+    [
+        ("dh=AAA", "dh", "AAA"),
+        ("dh=AAA;p256ecdsa=BBB", "dh", "AAA"),
+        ("p256ecdsa=BBB; dh=AAA", "dh", "AAA"),
+        ("keyid=p256dh,dh=AAA", "dh", "AAA"),
+        ("salt=SSS==;rs=4096", "salt", "SSS=="),
+        ("dh = AAA", "dh", "AAA"),
+        ("p256ecdsa = BBB ; dh\t=\tAAA", "dh", "AAA"),
+        ("DH=AAA", "dh", "AAA"),
+        ("Salt=SSS==;RS=4096", "salt", "SSS=="),
+    ],
+)
+def test_header_param(header, name, expected):
+    assert _header_param(header, name) == expected
+
+
+def test_header_param_missing():
+    with pytest.raises(ValueError, match="dh="):
+        _header_param("p256ecdsa=BBB", "dh")
+
+
+async def test_data_message_with_multi_segment_headers():
+    credentials = load_fixture_as_dict("credentials.json")
+    salt = b"0123456789abcdef"
+    salt_str = urlsafe_b64encode(salt).decode("ascii").rstrip("=")
+    dms = _encrypted_message(
+        f"dh={SENDER_PUB};p256ecdsa={SENDER_PUB}",
+        f"salt={salt_str};rs=4096",
+        salt,
+        b'{ "foo" : "bar" }',
+        credentials,
+    )
+    received = []
+    pr = FcmPushClient(
+        lambda ntf, psid, obj=None: received.append(ntf),
+        FcmRegisterConfig("project-1234", "bar", "foobar", "foobar"),
+        credentials,
+    )
+    pr._handle_data_message(dms)
+
+    assert received == [{"foo": "bar"}]
+
+
+async def test_undecryptable_data_message_is_acked(caplog):
+    credentials = load_fixture_as_dict("credentials.json")
+    dms = load_fixture_as_msg("data_message_stanza.json", DataMessageStanza)
+    _set_app_data(dms, "crypto-key", "dh=notakey")
+    pr = FcmPushClient(
+        None,
+        FcmRegisterConfig("project-1234", "bar", "foobar", "foobar"),
+        credentials,
+        config=FcmPushClientConfig(send_selective_acknowledgements=False),
+    )
+    await pr._handle_message(dms)
+
+    assert dms.persistent_id in pr.persistent_ids
+    assert "Dropping data message" in caplog.text

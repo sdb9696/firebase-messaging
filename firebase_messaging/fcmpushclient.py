@@ -84,6 +84,20 @@ class FcmPushClientRunState(Enum):
     STOPPED = (8,)
 
 
+def _header_param(header: str, name: str) -> str:
+    """Return one parameter of a Crypto-Key or Encryption header.
+
+    Senders may add parameters (``dh=...;p256ecdsa=...``), so slicing off the
+    prefix would glue two keys together. Parameter names are matched
+    case-insensitively and whitespace around ``=`` is ignored.
+    """
+    for part in header.replace(",", ";").split(";"):
+        key, _, value = part.partition("=")
+        if key.strip().lower() == name.lower():
+            return value.strip()
+    raise ValueError(f"no {name}= parameter in header")
+
+
 @dataclass
 class FcmPushClientConfig:  # pylint:disable=too-many-instance-attributes
     """Class to provide configuration to
@@ -378,8 +392,8 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         salt_str: str,
         raw_data: bytes,
     ) -> bytes:
-        crypto_key = urlsafe_b64decode(crypto_key_str.encode("ascii"))
-        salt = urlsafe_b64decode(salt_str.encode("ascii"))
+        crypto_key = urlsafe_b64decode(crypto_key_str.encode("ascii") + b"========")
+        salt = urlsafe_b64decode(salt_str.encode("ascii") + b"========")
         der_data_str = credentials["keys"]["private"]
         der_data = urlsafe_b64decode(der_data_str.encode("ascii") + b"========")
         secret_str = credentials["keys"]["secret"]
@@ -425,8 +439,8 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
         ):
             # The deleted_messages message does not contain data.
             return
-        crypto_key = self._app_data_by_key(msg, "crypto-key")[3:]  # strip dh=
-        salt = self._app_data_by_key(msg, "encryption")[5:]  # strip salt=
+        crypto_key = _header_param(self._app_data_by_key(msg, "crypto-key"), "dh")
+        salt = _header_param(self._app_data_by_key(msg, "encryption"), "salt")
         subtype = self._app_data_by_key(msg, "subtype")
         if TYPE_CHECKING:
             assert self.credentials
@@ -605,7 +619,17 @@ class FcmPushClient:  # pylint:disable=too-many-instance-attributes
             return
 
         if isinstance(msg, DataMessageStanza):
-            self._handle_data_message(msg)
+            # A message that fails here is never acked and comes back on every
+            # reconnect, so log it and ack it anyway.
+            try:
+                self._handle_data_message(msg)
+            except Exception:
+                _logger.exception(
+                    "Dropping data message %s (crypto-key=%r, encryption=%r)",
+                    msg.persistent_id,
+                    self._app_data_by_key(msg, "crypto-key", do_not_raise=True),
+                    self._app_data_by_key(msg, "encryption", do_not_raise=True),
+                )
             self.persistent_ids.append(msg.persistent_id)
             if self.config.send_selective_acknowledgements:
                 await self._send_selective_ack(msg.persistent_id)
